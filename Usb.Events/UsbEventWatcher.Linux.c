@@ -8,7 +8,7 @@
 
 #define SUBSYSTEM "usb"
 
-static void print_device(struct udev_device* dev)
+void print_device(struct udev_device* dev)
 {
     const char* action = udev_device_get_action(dev);
     if (! action)
@@ -31,7 +31,7 @@ static void print_device(struct udev_device* dev)
            udev_device_get_devnode(dev));
 }
 
-static void process_device(struct udev_device* dev)
+void process_device(struct udev_device* dev)
 {
     if (dev) {
         if (udev_device_get_devnode(dev))
@@ -41,7 +41,7 @@ static void process_device(struct udev_device* dev)
     }
 }
 
-static void enumerate_devices(struct udev* udev)
+void enumerate_devices(struct udev* udev)
 {
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
@@ -60,7 +60,7 @@ static void enumerate_devices(struct udev* udev)
     udev_enumerate_unref(enumerate);
 }
 
-static void monitor_devices(struct udev* udev)
+void monitor_devices(struct udev* udev)
 {
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
 
@@ -85,17 +85,16 @@ static void monitor_devices(struct udev* udev)
     }
 }
 
-int main(void)
+void StartLinuxWatcher(void)
 {
     struct udev* udev = udev_new();
     if (!udev) {
         fprintf(stderr, "udev_new() failed\n");
-        return 1;
+        return;
     }
 
     enumerate_devices(udev);
     monitor_devices(udev);
 
     udev_unref(udev);
-    return 0;
 }

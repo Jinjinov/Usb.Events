@@ -3,14 +3,13 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 
 namespace Usb.Events
 {
     public class UsbEventWatcher : IUsbEventWatcher, IDisposable
     {
-        private readonly ManagementEventWatcher _volumeChangeEventWatcher = new ManagementEventWatcher();
-        private readonly ManagementEventWatcher _instanceCreationEventWatcher = new ManagementEventWatcher();
-        private readonly ManagementEventWatcher _instanceDeletionEventWatcher = new ManagementEventWatcher();
+        #region IUsbEventWatcher
 
         public ObservableCollection<string> RemovableDriveNameList { get; private set; } = new ObservableCollection<string>();
 
@@ -20,7 +19,51 @@ namespace Usb.Events
         public event EventHandler<string>? PnPEntityInstanceCreation;
         public event EventHandler<string>? PnPEntityInstanceDeletion;
 
+        #endregion
+
+        #region Windows fields
+
+        private ManagementEventWatcher _volumeChangeEventWatcher = null!;
+        private ManagementEventWatcher _instanceCreationEventWatcher = null!;
+        private ManagementEventWatcher _instanceDeletionEventWatcher = null!;
+
+        #endregion
+
         public UsbEventWatcher()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                StartWindowsWatcher();
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || Environment.OSVersion.Platform == PlatformID.MacOSX)
+            {
+                StartMacWatcher();
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                StartLinuxWatcher();
+            }
+        }
+
+        #region Mac methods
+
+        [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StartMacWatcher();
+
+        #endregion
+
+        #region Linux methods
+
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StartLinuxWatcher();
+
+        #endregion
+
+        #region Windows methods
+
+        private void StartWindowsWatcher()
         {
             RemovableDriveNameList = new ObservableCollection<string>(DriveInfo.GetDrives()
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
@@ -114,5 +157,7 @@ namespace Usb.Events
             _instanceDeletionEventWatcher.Stop();
             _instanceDeletionEventWatcher.Dispose();
         }
+
+        #endregion
     }
 }
