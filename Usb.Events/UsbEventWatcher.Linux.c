@@ -5,8 +5,15 @@
  */
 #include <libudev.h>
 #include <stdio.h>
+#include <string.h>
 
 #define SUBSYSTEM "usb"
+
+typedef void (*WatcherCallback)(char* message);
+WatcherCallback InsertedCallback;
+WatcherCallback RemovedCallback;
+
+char buffer[4096];
 
 void print_device(struct udev_device* dev)
 {
@@ -22,13 +29,23 @@ void print_device(struct udev_device* dev)
     if (! product)
         product = "0000";
 
-    printf("%s %s %6s %s:%s %s\n",
+    sprintf(buffer, "%s %s %6s %s:%s %s",
            udev_device_get_subsystem(dev),
            udev_device_get_devtype(dev),
            action,
            vendor,
            product,
            udev_device_get_devnode(dev));
+
+    if (strcmp(action, "add") == 0)
+    {
+        InsertedCallback(buffer);
+    }
+
+    if (strcmp(action, "remove") == 0)
+    {
+        RemovedCallback(buffer);
+    }
 }
 
 void process_device(struct udev_device* dev)
@@ -85,10 +102,15 @@ void monitor_devices(struct udev* udev)
     }
 }
 
-extern "C"
-{
-    void StartLinuxWatcher(void)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback)
     {
+        InsertedCallback = insertedCallback;
+        RemovedCallback = removedCallback;
+
         struct udev* udev = udev_new();
         if (!udev) {
             fprintf(stderr, "udev_new() failed\n");
@@ -100,4 +122,20 @@ extern "C"
 
         udev_unref(udev);
     }
+
+    /*
+    char result[100] = "Linux received a message: ";
+
+    char* DelegateTest(char* message, WatcherCallback testCallback)
+    {
+        strcat(result, message);
+
+        testCallback(result);
+
+        return result;
+    }
+    /**/
+
+#ifdef __cplusplus
 }
+#endif

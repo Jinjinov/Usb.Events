@@ -12,6 +12,10 @@ typedef struct MyPrivateData {
     UInt32					locationID;
 } MyPrivateData;
 
+typedef void (*WatcherCallback)(char* message);
+WatcherCallback InsertedCallback;
+WatcherCallback RemovedCallback;
+
 static IONotificationPortRef	gNotifyPort;
 static io_iterator_t			gAddedIter;
 static CFRunLoopRef				gRunLoop;
@@ -159,10 +163,14 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
     }
 }
 
-extern "C"
-{
-    void StartMacWatcher(void)
+#ifdef __cplusplus
+extern "C" {
+#endif
+    void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback)
     {
+        InsertedCallback = insertedCallback;
+        RemovedCallback = removedCallback;
+
         CFMutableDictionaryRef 	matchingDict;
         CFRunLoopSourceRef		runLoopSource;
         kern_return_t			kr;
@@ -210,4 +218,6 @@ extern "C"
         // We should never get here
         fprintf(stderr, "Unexpectedly back from CFRunLoopRun()!\n");
     }
+#ifdef __cplusplus
 }
+#endif

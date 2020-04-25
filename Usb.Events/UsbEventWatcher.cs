@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Usb.Events
 {
@@ -38,26 +39,52 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || Environment.OSVersion.Platform == PlatformID.MacOSX)
             {
-                StartMacWatcher();
+                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                StartLinuxWatcher();
+                //string message = Marshal.PtrToStringAuto(DelegateTest("To Linux", back => Console.WriteLine(back)));
+                //Console.WriteLine(message);
+
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
             }
         }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        delegate void WatcherCallback(string driveName);
+
+        private void InsertedCallback(string driveName)
+        {
+            DriveInserted?.Invoke(this, driveName);
+
+            RemovableDriveNameList.Add(driveName);
+        }
+
+        private void RemovedCallback(string driveName)
+        {
+            DriveRemoved?.Invoke(this, driveName);
+
+            if (RemovableDriveNameList.Contains(driveName))
+            {
+                RemovableDriveNameList.Remove(driveName);
+            }
+        }
+
+        #region Linux methods
+
+        //[DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        //static extern IntPtr DelegateTest(string message, WatcherCallback testCallback);
+
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
+
+        #endregion
 
         #region Mac methods
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher();
-
-        #endregion
-
-        #region Linux methods
-
-        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher();
+        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
 
         #endregion
 
@@ -87,26 +114,22 @@ namespace Usb.Events
 
         private void VolumeChangeEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            string DriveName = e.NewEvent?.Properties["DriveName"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(DriveName) + " is null");
-            if (!DriveName.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                DriveName += Path.DirectorySeparatorChar;
+            string driveName = e.NewEvent?.Properties["DriveName"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(driveName) + " is null");
+            if (!driveName.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                driveName += Path.DirectorySeparatorChar;
 
-            string EventType = e.NewEvent?.Properties["EventType"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(EventType) + " is null");
-            bool inserted = EventType == "2";
-            bool removed = EventType == "3";
+            string eventType = e.NewEvent?.Properties["EventType"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(eventType) + " is null");
+            bool inserted = eventType == "2";
+            bool removed = eventType == "3";
 
             if (inserted)
             {
-                DriveInserted?.Invoke(this, DriveName);
-
-                RemovableDriveNameList.Add(DriveName);
+                InsertedCallback(driveName);
             }
 
             if (removed)
             {
-                DriveRemoved?.Invoke(this, DriveName);
-
-                RemovableDriveNameList.Remove(DriveName);
+                RemovedCallback(driveName);
             }
         }
 

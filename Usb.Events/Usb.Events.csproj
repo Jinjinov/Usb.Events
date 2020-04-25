@@ -38,7 +38,7 @@
           Command="gcc -shared -framework CoreFoundation -framework IOKit UsbEventWatcher.Mac.c -o x64/$(Configuration)/UsbEventWatcher.Mac.dylib" />
     <Exec Condition="'$(IsMacOS)' != 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared UsbEventWatcher.Linux.c -o x64/$(Configuration)/UsbEventWatcher.Linux.so `pkg-config --cflags --libs ludev` -fPIC" />
+          Command="gcc -shared UsbEventWatcher.Linux.c -o x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
