@@ -85,16 +85,19 @@ void monitor_devices(struct udev* udev)
     }
 }
 
-void StartLinuxWatcher(void)
+extern "C"
 {
-    struct udev* udev = udev_new();
-    if (!udev) {
-        fprintf(stderr, "udev_new() failed\n");
-        return;
+    void StartLinuxWatcher(void)
+    {
+        struct udev* udev = udev_new();
+        if (!udev) {
+            fprintf(stderr, "udev_new() failed\n");
+            return;
+        }
+
+        enumerate_devices(udev);
+        monitor_devices(udev);
+
+        udev_unref(udev);
     }
-
-    enumerate_devices(udev);
-    monitor_devices(udev);
-
-    udev_unref(udev);
 }

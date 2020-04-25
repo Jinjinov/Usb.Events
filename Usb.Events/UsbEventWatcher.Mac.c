@@ -159,52 +159,55 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
     }
 }
 
-void StartMacWatcher(void)
+extern "C"
 {
-    CFMutableDictionaryRef 	matchingDict;
-    CFRunLoopSourceRef		runLoopSource;
-    kern_return_t			kr;
-        
-    // Set up the matching criteria for the devices we're interested in. The matching criteria needs to follow
-    // the same rules as kernel drivers: mainly it needs to follow the USB Common Class Specification, pp. 6-7.
-    // See also Technical Q&A QA1076 "Tips on USB driver matching on Mac OS X" 
-	// <http://developer.apple.com/qa/qa2001/qa1076.html>.
-    // One exception is that you can use the matching dictionary "as is", i.e. without adding any matching 
-    // criteria to it and it will match every IOUSBDevice in the system. IOServiceAddMatchingNotification will 
-    // consume this dictionary reference, so there is no need to release it later on.
-    
-    matchingDict = IOServiceMatching(kIOUSBDeviceClassName);	// Interested in instances of class
-                                                                // IOUSBDevice and its subclasses
-    if (matchingDict == NULL) {
-        fprintf(stderr, "IOServiceMatching returned NULL.\n");
-        return;
+    void StartMacWatcher(void)
+    {
+        CFMutableDictionaryRef 	matchingDict;
+        CFRunLoopSourceRef		runLoopSource;
+        kern_return_t			kr;
+
+        // Set up the matching criteria for the devices we're interested in. The matching criteria needs to follow
+        // the same rules as kernel drivers: mainly it needs to follow the USB Common Class Specification, pp. 6-7.
+        // See also Technical Q&A QA1076 "Tips on USB driver matching on Mac OS X" 
+        // <http://developer.apple.com/qa/qa2001/qa1076.html>.
+        // One exception is that you can use the matching dictionary "as is", i.e. without adding any matching 
+        // criteria to it and it will match every IOUSBDevice in the system. IOServiceAddMatchingNotification will 
+        // consume this dictionary reference, so there is no need to release it later on.
+
+        matchingDict = IOServiceMatching(kIOUSBDeviceClassName);	// Interested in instances of class
+                                                                    // IOUSBDevice and its subclasses
+        if (matchingDict == NULL) {
+            fprintf(stderr, "IOServiceMatching returned NULL.\n");
+            return;
+        }
+
+        // Create a notification port and add its run loop event source to our run loop
+        // This is how async notifications get set up.
+
+        gNotifyPort = IONotificationPortCreate(kIOMasterPortDefault);
+        runLoopSource = IONotificationPortGetRunLoopSource(gNotifyPort);
+
+        gRunLoop = CFRunLoopGetCurrent();
+        CFRunLoopAddSource(gRunLoop, runLoopSource, kCFRunLoopDefaultMode);
+
+        // Now set up a notification to be called when a device is first matched by I/O Kit.
+        kr = IOServiceAddMatchingNotification(gNotifyPort,					// notifyPort
+            kIOFirstMatchNotification,	// notificationType
+            matchingDict,					// matching
+            DeviceAdded,					// callback
+            NULL,							// refCon
+            &gAddedIter					// notification
+        );
+
+        // Iterate once to get already-present devices and arm the notification    
+        DeviceAdded(NULL, gAddedIter);
+
+        // Start the run loop. Now we'll receive notifications.
+        fprintf(stderr, "Starting run loop.\n\n");
+        CFRunLoopRun();
+
+        // We should never get here
+        fprintf(stderr, "Unexpectedly back from CFRunLoopRun()!\n");
     }
-
-    // Create a notification port and add its run loop event source to our run loop
-    // This is how async notifications get set up.
-    
-    gNotifyPort = IONotificationPortCreate(kIOMasterPortDefault);
-    runLoopSource = IONotificationPortGetRunLoopSource(gNotifyPort);
-    
-    gRunLoop = CFRunLoopGetCurrent();
-    CFRunLoopAddSource(gRunLoop, runLoopSource, kCFRunLoopDefaultMode);
-    
-    // Now set up a notification to be called when a device is first matched by I/O Kit.
-    kr = IOServiceAddMatchingNotification(gNotifyPort,					// notifyPort
-                                          kIOFirstMatchNotification,	// notificationType
-                                          matchingDict,					// matching
-                                          DeviceAdded,					// callback
-                                          NULL,							// refCon
-                                          &gAddedIter					// notification
-                                          );		
-                                            
-    // Iterate once to get already-present devices and arm the notification    
-    DeviceAdded(NULL, gAddedIter);	
-
-    // Start the run loop. Now we'll receive notifications.
-    fprintf(stderr, "Starting run loop.\n\n");
-    CFRunLoopRun();
-        
-    // We should never get here
-    fprintf(stderr, "Unexpectedly back from CFRunLoopRun()!\n");
 }
