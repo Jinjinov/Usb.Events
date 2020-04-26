@@ -21,21 +21,46 @@ void print_device(struct udev_device* dev)
     if (! action)
         action = "exists";
 
-    const char* vendor = udev_device_get_sysattr_value(dev, "idVendor");
-    if (! vendor)
-        vendor = "0000";
+    sprintf(buffer, "%s ; %s ; %s ; %s ; %s ; %s ; %s ; %s ; %s",
+        udev_device_get_devpath(dev),   // /devices/pci0000:00/0000:00:06.0/usb1/1-2
+        udev_device_get_subsystem(dev), // usb
+        udev_device_get_devtype(dev),   // usb_device
+        udev_device_get_syspath(dev),   // /sys/devices/pci0000:00/0000:00:06.0/usb1/1-2
+        udev_device_get_sysname(dev),   // 1-2
+        udev_device_get_sysnum(dev),    // 2
+        udev_device_get_devnode(dev),   // /dev/bus/usb/001/011
+        udev_device_get_driver(dev),    // usb
+        udev_device_get_action(dev));   // add
 
-    const char* product = udev_device_get_sysattr_value(dev, "idProduct");
-    if (! product)
-        product = "0000";
+    sprintf(buffer, "%s ; %s ; %s ; %s ; %s",
+        udev_device_get_sysattr_value(dev, "idVendor"),     // 0951
+        udev_device_get_sysattr_value(dev, "idProduct"),    // 1625
+        udev_device_get_sysattr_value(dev, "serial"),       // 0019E06B9C85F9A0F7550C20
+        udev_device_get_sysattr_value(dev, "product"),      // DT 101 II
+        udev_device_get_sysattr_value(dev, "manufacturer"), // Kingston
 
-    sprintf(buffer, "%s %s %6s %s:%s %s",
-           udev_device_get_subsystem(dev),
-           udev_device_get_devtype(dev),
-           action,
-           vendor,
-           product,
-           udev_device_get_devnode(dev));
+    sprintf(buffer, "%s ; %s ; %s ; %s ; %s ; %s ; %s ; %s ; %s",
+        udev_device_get_property_value(dev, "DEVNAME"),                 // /dev/bus/usb/001/016
+        udev_device_get_property_value(dev, "DEVPATH"),                 // /devices/pci0000:00/0000:00:06.0/usb1/1-3
+        udev_device_get_property_value(dev, "ID_MODEL"),                // DT_101_II
+        udev_device_get_property_value(dev, "ID_MODEL_FROM_DATABASE"),  // DataTraveler 101 II
+        udev_device_get_property_value(dev, "ID_MODEL_ID"),             // 1625
+        udev_device_get_property_value(dev, "ID_SERIAL_SHORT"),         // 0019E06B9C85F9A0F7550C20
+        udev_device_get_property_value(dev, "ID_VENDOR"),               // Kingston
+        udev_device_get_property_value(dev, "ID_VENDOR_FROM_DATABASE"), // Kingston Technology
+        udev_device_get_property_value(dev, "ID_VENDOR_ID"));           // 0951
+
+    strcpy(buffer, " ; ");
+    struct udev_list_entry* entry;
+    struct udev_list_entry* sysattrs = udev_device_get_properties_list_entry(dev);
+    udev_list_entry_foreach(entry, sysattrs) {
+        const char* name = udev_list_entry_get_name(entry);
+        const char* value = udev_list_entry_get_value(entry);
+        strcat(buffer, name);
+        strcat(buffer, " = ");
+        strcat(buffer, value);
+        strcat(buffer, " ; ");
+    }
 
     if (strcmp(action, "add") == 0)
     {

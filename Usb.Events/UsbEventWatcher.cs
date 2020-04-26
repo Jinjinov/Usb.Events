@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -12,13 +12,14 @@ namespace Usb.Events
     {
         #region IUsbEventWatcher
 
-        public ObservableCollection<string> RemovableDriveNameList { get; private set; } = new ObservableCollection<string>();
+        public IList<string> UsbDrivePathList { get; private set; } = new List<string>();
+        public IList<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
-        public event EventHandler<string>? DriveInserted;
-        public event EventHandler<string>? DriveRemoved;
+        public event EventHandler<string>? UsbDriveInserted;
+        public event EventHandler<string>? UsbDriveRemoved;
 
-        public event EventHandler<string>? PnPEntityInstanceCreation;
-        public event EventHandler<string>? PnPEntityInstanceDeletion;
+        public event EventHandler<UsbDevice>? UsbDeviceInserted;
+        public event EventHandler<UsbDevice>? UsbDeviceRemoved;
 
         #endregion
 
@@ -56,22 +57,26 @@ namespace Usb.Events
 
         private void InsertedCallback(string driveName)
         {
-            DriveInserted?.Invoke(this, driveName);
+            UsbDriveInserted?.Invoke(this, driveName);
 
-            RemovableDriveNameList.Add(driveName);
+            UsbDrivePathList.Add(driveName);
         }
 
         private void RemovedCallback(string driveName)
         {
-            DriveRemoved?.Invoke(this, driveName);
+            UsbDriveRemoved?.Invoke(this, driveName);
 
-            if (RemovableDriveNameList.Contains(driveName))
+            if (UsbDrivePathList.Contains(driveName))
             {
-                RemovableDriveNameList.Remove(driveName);
+                UsbDrivePathList.Remove(driveName);
             }
         }
 
         #region Linux methods
+
+        // https://github.com/PaulStoffregen/SerialDiscovery_JSON/blob/master/SerialDiscovery.c
+        // https://github.com/MadLittleMods/node-usb-detection/blob/master/src/detection_linux.cpp
+        // https://chromium.googlesource.com/chromiumos/platform/cros-disks/+/c32f05bf1b37716fdab4512f38248a139006473d/udev_device.cc
 
         //[DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         //static extern IntPtr DelegateTest(string message, WatcherCallback testCallback);
@@ -92,7 +97,7 @@ namespace Usb.Events
 
         private void StartWindowsWatcher()
         {
-            RemovableDriveNameList = new ObservableCollection<string>(DriveInfo.GetDrives()
+            UsbDrivePathList = new List<string>(DriveInfo.GetDrives()
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
                 .Select(driveInfo => driveInfo.Name.EndsWith(Path.DirectorySeparatorChar.ToString()) ? driveInfo.Name : driveInfo.Name + Path.DirectorySeparatorChar));
 
@@ -148,7 +153,7 @@ namespace Usb.Events
             string description = (string)instance.Properties["Description"].Value;
             string name = (string)instance.Properties["Name"].Value;
 
-            PnPEntityInstanceCreation?.Invoke(this, name);
+            UsbDeviceInserted?.Invoke(this, new UsbDevice { Name = name });
         }
 
         private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -166,7 +171,7 @@ namespace Usb.Events
             string description = (string)instance.Properties["Description"].Value;
             string name = (string)instance.Properties["Name"].Value;
 
-            PnPEntityInstanceDeletion?.Invoke(this, name);
+            UsbDeviceRemoved?.Invoke(this, new UsbDevice { Name = name });
         }
 
         public void Dispose()

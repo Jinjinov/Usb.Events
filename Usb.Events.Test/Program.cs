@@ -8,14 +8,18 @@ namespace Usb.Events.Test
 
         static void Main(string[] _)
         {
-            foreach (string driveName in usbEventWatcher.RemovableDriveNameList)
+            foreach (string driveName in usbEventWatcher.UsbDrivePathList)
             {
                 Console.WriteLine(driveName);
             }
 
-            usbEventWatcher.DriveInserted += (_, driveName) => Console.WriteLine($"Drive {driveName} inserted!");
+            usbEventWatcher.UsbDriveInserted += (_, path) => Console.WriteLine($"Drive {path} inserted!");
 
-            usbEventWatcher.DriveRemoved += (_, driveName) => Console.WriteLine($"Drive {driveName} removed!");
+            usbEventWatcher.UsbDriveRemoved += (_, path) => Console.WriteLine($"Drive {path} removed!");
+
+            usbEventWatcher.UsbDeviceInserted += (_, device) => Console.WriteLine($"Device {device} inserted!");
+
+            usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine($"Device {device} removed!");
 
             Console.ReadLine();
         }
