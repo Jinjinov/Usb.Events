@@ -137,11 +137,15 @@ namespace Usb.Events
 
         private void VolumeChangeEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            string driveName = e.NewEvent.Properties["DriveName"].Value.ToString();
+            ManagementBaseObject Win32_VolumeChangeEvent = e.NewEvent;
+
+            string driveName = Win32_VolumeChangeEvent["DriveName"].ToString();
+
             if (!driveName.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 driveName += Path.DirectorySeparatorChar;
 
-            string eventType = e.NewEvent.Properties["EventType"].Value.ToString();
+            string eventType = Win32_VolumeChangeEvent["EventType"].ToString();
+
             bool inserted = eventType == "2";
             bool removed = eventType == "3";
 
@@ -187,7 +191,7 @@ namespace Usb.Events
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
-            string deviceID = (string)Win32_USBHub.Properties["DeviceID"].Value;
+            string deviceID = Win32_USBHub["DeviceID"].ToString();
 
             string[] info = deviceID.Split('\\');
 
@@ -212,11 +216,11 @@ namespace Usb.Events
 
             foreach (ManagementObject entity in Win32_PnPEntity.Get())
             {
-                usbDevice.DeviceName = ((string)entity.Properties["Caption"].Value).Trim();
-                usbDevice.Product = ((string)entity.Properties["Description"].Value).Trim();
-                usbDevice.ProductDescription = ((string)entity.Properties["Description"].Value).Trim();
-                usbDevice.Vendor = ((string)entity.Properties["Manufacturer"].Value).Trim();
-                usbDevice.VendorDescription = ((string)entity.Properties["Manufacturer"].Value).Trim();
+                usbDevice.DeviceName = entity["Caption"].ToString().Trim();
+                usbDevice.Product = entity["Description"].ToString().Trim();
+                usbDevice.ProductDescription = entity["Description"].ToString().Trim();
+                usbDevice.Vendor = entity["Manufacturer"].ToString().Trim();
+                usbDevice.VendorDescription = entity["Manufacturer"].ToString().Trim();
             }
 
             using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
@@ -225,7 +229,7 @@ namespace Usb.Events
             foreach (ManagementObject drive in Win32_DiskDrive.Get())
             {
                 using ManagementObjectSearcher Win32_DiskDriveToDiskPartition = new ManagementObjectSearcher(
-                    "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='" + drive.Properties["DeviceID"].Value + "'} WHERE AssocClass = Win32_DiskDriveToDiskPartition");
+                    "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='" + drive["DeviceID"] + "'} WHERE AssocClass = Win32_DiskDriveToDiskPartition");
 
                 foreach (ManagementObject partition in Win32_DiskDriveToDiskPartition.Get())
                 {
@@ -234,7 +238,7 @@ namespace Usb.Events
 
                     foreach (ManagementObject disk in Win32_LogicalDiskToPartition.Get())
                     {
-                        usbDevice.DevicePath = (string)disk["DeviceID"];
+                        usbDevice.DevicePath = disk["DeviceID"].ToString();
                     }
                 }
             }
