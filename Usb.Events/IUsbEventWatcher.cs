@@ -33,6 +33,19 @@ namespace Usb.Events
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
         public string VendorID;
+
+        public override string ToString()
+        {
+            return "DeviceName " + DeviceName + 
+                " DevicePath " + DevicePath + 
+                " Product " + Product + 
+                " ProductDescription " + ProductDescription + 
+                " ProductID " + ProductID + 
+                " SerialNumber " + SerialNumber + 
+                " Vendor " + Vendor + 
+                " VendorDescription " + VendorDescription + 
+                " VendorID " + VendorID;
+        }
     }
 
     public interface IUsbEventWatcher

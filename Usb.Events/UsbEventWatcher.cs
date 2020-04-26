@@ -126,22 +126,22 @@ namespace Usb.Events
 
             _instanceCreationEventWatcher = new ManagementEventWatcher();
             _instanceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(InstanceCreationEventWatcher_EventArrived);
-            _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
+            _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
             _instanceCreationEventWatcher.Start();
 
             _instanceDeletionEventWatcher = new ManagementEventWatcher();
             _instanceDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(InstanceDeletionEventWatcher_EventArrived);
-            _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
+            _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
             _instanceDeletionEventWatcher.Start();
         }
 
         private void VolumeChangeEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            string driveName = e.NewEvent?.Properties["DriveName"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(driveName) + " is null");
+            string driveName = e.NewEvent.Properties["DriveName"].Value.ToString();
             if (!driveName.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 driveName += Path.DirectorySeparatorChar;
 
-            string eventType = e.NewEvent?.Properties["EventType"]?.Value?.ToString() ?? throw new NullReferenceException(nameof(eventType) + " is null");
+            string eventType = e.NewEvent.Properties["EventType"].Value.ToString();
             bool inserted = eventType == "2";
             bool removed = eventType == "3";
 
@@ -155,6 +155,30 @@ namespace Usb.Events
                 OnDriveRemoved(driveName);
             }
         }
+
+        /*
+        ClassGuid = {71a27cdd-812a-11d0-bec7-08002be2092f}
+        DeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+        PNPDeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+
+        ClassGuid = {eec5ad98-8080-425f-922a-dabf3de3f69a}
+        Caption = IRM_CCSA_X64FRE_EN-US_DV5
+        Description = DT 101 II
+        Manufacturer = Kingston
+        Name = IRM_CCSA_X64FRE_EN-US_DV5
+        DeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+        PNPDeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+
+        ClassGuid = {36fc9e60-c465-11cf-8056-444553540000}
+        DeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
+        PNPDeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
+
+        ClassGuid = {4d36e967-e325-11ce-bfc1-08002be10318}
+        Caption = Kingston DT 101 II USB Device
+        Name = Kingston DT 101 II USB Device
+        DeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
+        PNPDeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
+        /**/
 
         private void InstanceCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
@@ -171,13 +195,57 @@ namespace Usb.Events
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
+            string deviceID = (string)instance.Properties["DeviceID"].Value;
+
+            string[] info = deviceID.Split('\\');
+
+            string[] id = info[1].Split('&');
+
+            string vendorId = id[0].Substring(4, 4);
+            string productId = id[1].Substring(4, 4);
+
+            string serial = info[2];
+
             UsbDevice usbDevice = new UsbDevice
             {
-                Product = (string)instance.Properties["Caption"].Value,
-                ProductDescription = (string)instance.Properties["Description"].Value,
-                DeviceName = (string)instance.Properties["Name"].Value,
-                Vendor = (string)instance.Properties["Manufacturer"].Value
+                ProductID = productId,
+                SerialNumber = serial,
+                VendorID = vendorId
             };
+
+            string ClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
+
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher(
+                $"SELECT Caption, Description, Manufacturer FROM Win32_PnPEntity WHERE ClassGuid = '{ClassGuid}' AND DeviceID LIKE '%{serial}%'");
+
+            foreach (ManagementObject entity in Win32_PnPEntity.Get())
+            {
+                usbDevice.DeviceName = ((string)entity.Properties["Caption"].Value).Trim();
+                usbDevice.Product = ((string)entity.Properties["Description"].Value).Trim();
+                usbDevice.ProductDescription = ((string)entity.Properties["Description"].Value).Trim();
+                usbDevice.Vendor = ((string)entity.Properties["Manufacturer"].Value).Trim();
+                usbDevice.VendorDescription = ((string)entity.Properties["Manufacturer"].Value).Trim();
+            }
+
+            using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
+                $"SELECT DeviceID FROM Win32_DiskDrive WHERE SerialNumber = '{serial}'");
+
+            foreach (ManagementObject drive in Win32_DiskDrive.Get())
+            {
+                using ManagementObjectSearcher Win32_DiskDriveToDiskPartition = new ManagementObjectSearcher(
+                    "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='" + drive.Properties["DeviceID"].Value + "'} WHERE AssocClass = Win32_DiskDriveToDiskPartition");
+
+                foreach (ManagementObject partition in Win32_DiskDriveToDiskPartition.Get())
+                {
+                    using ManagementObjectSearcher Win32_LogicalDiskToPartition = new ManagementObjectSearcher(
+                        "ASSOCIATORS OF {Win32_DiskPartition.DeviceID='" + partition["DeviceID"] + "'} WHERE AssocClass = Win32_LogicalDiskToPartition");
+
+                    foreach (ManagementObject disk in Win32_LogicalDiskToPartition.Get())
+                    {
+                        usbDevice.DevicePath = (string)disk["DeviceID"];
+                    }
+                }
+            }
 
             OnDeviceInserted(usbDevice);
         }
