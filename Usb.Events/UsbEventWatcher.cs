@@ -80,8 +80,8 @@ namespace Usb.Events
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
 
-            if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath))
-                UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath));
+            if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath))
+                UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath));
         }
 
         #endregion
@@ -156,38 +156,30 @@ namespace Usb.Events
             }
         }
 
-        /*
-        ClassGuid = {71a27cdd-812a-11d0-bec7-08002be2092f}
-        DeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-        PNPDeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-
-        ClassGuid = {eec5ad98-8080-425f-922a-dabf3de3f69a}
-        Caption = IRM_CCSA_X64FRE_EN-US_DV5
-        Description = DT 101 II
-        Manufacturer = Kingston
-        Name = IRM_CCSA_X64FRE_EN-US_DV5
-        DeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-        PNPDeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-
-        ClassGuid = {36fc9e60-c465-11cf-8056-444553540000}
-        DeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
-        PNPDeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
-
-        ClassGuid = {4d36e967-e325-11ce-bfc1-08002be10318}
-        Caption = Kingston DT 101 II USB Device
-        Name = Kingston DT 101 II USB Device
-        DeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
-        PNPDeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
-        /**/
-
         private void InstanceCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            ManagementBaseObject instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
+            UsbDevice usbDevice = GetUsbDevice(Win32_USBHub);
+
+            OnDeviceInserted(usbDevice);
+        }
+
+        private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
+        {
+            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+
+            UsbDevice usbDevice = GetUsbDevice(Win32_USBHub);
+
+            OnDeviceRemoved(usbDevice);
+        }
+
+        private static UsbDevice GetUsbDevice(ManagementBaseObject Win32_USBHub)
+        {
 #if DEBUG
             System.Diagnostics.Debug.WriteLine(string.Empty);
 
-            foreach (PropertyData property in instance.Properties)
+            foreach (PropertyData property in Win32_USBHub.Properties)
             {
                 System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
             }
@@ -195,7 +187,7 @@ namespace Usb.Events
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
-            string deviceID = (string)instance.Properties["DeviceID"].Value;
+            string deviceID = (string)Win32_USBHub.Properties["DeviceID"].Value;
 
             string[] info = deviceID.Split('\\');
 
@@ -247,34 +239,32 @@ namespace Usb.Events
                 }
             }
 
-            OnDeviceInserted(usbDevice);
+            return usbDevice;
         }
 
-        private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
-        {
-            ManagementBaseObject instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+        /*
+        ClassGuid = {71a27cdd-812a-11d0-bec7-08002be2092f}
+        DeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+        PNPDeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
 
-#if DEBUG
-            System.Diagnostics.Debug.WriteLine(string.Empty);
+        ClassGuid = {eec5ad98-8080-425f-922a-dabf3de3f69a}
+        Caption = IRM_CCSA_X64FRE_EN-US_DV5
+        Description = DT 101 II
+        Manufacturer = Kingston
+        Name = IRM_CCSA_X64FRE_EN-US_DV5
+        DeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
+        PNPDeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
 
-            foreach (PropertyData property in instance.Properties)
-            {
-                System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
-            }
+        ClassGuid = {36fc9e60-c465-11cf-8056-444553540000}
+        DeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
+        PNPDeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
 
-            System.Diagnostics.Debug.WriteLine(string.Empty);
-#endif
-
-            UsbDevice usbDevice = new UsbDevice
-            {
-                Product = (string)instance.Properties["Caption"].Value,
-                ProductDescription = (string)instance.Properties["Description"].Value,
-                DeviceName = (string)instance.Properties["Name"].Value,
-                Vendor = (string)instance.Properties["Manufacturer"].Value
-            };
-
-            OnDeviceRemoved(usbDevice);
-        }
+        ClassGuid = {4d36e967-e325-11ce-bfc1-08002be10318}
+        Caption = Kingston DT 101 II USB Device
+        Name = Kingston DT 101 II USB Device
+        DeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
+        PNPDeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
+        /**/
 
         public void Dispose()
         {

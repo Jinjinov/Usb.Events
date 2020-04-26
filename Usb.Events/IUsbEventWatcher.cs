@@ -36,15 +36,15 @@ namespace Usb.Events
 
         public override string ToString()
         {
-            return "DeviceName " + DeviceName + 
-                " DevicePath " + DevicePath + 
-                " Product " + Product + 
-                " ProductDescription " + ProductDescription + 
-                " ProductID " + ProductID + 
-                " SerialNumber " + SerialNumber + 
-                " Vendor " + Vendor + 
-                " VendorDescription " + VendorDescription + 
-                " VendorID " + VendorID;
+            return "DeviceName: " + DeviceName + 
+                ", DevicePath: " + DevicePath + 
+                ", Product: " + Product + 
+                ", ProductDescription: " + ProductDescription + 
+                ", ProductID: " + ProductID + 
+                ", SerialNumber: " + SerialNumber + 
+                ", Vendor: " + Vendor + 
+                ", VendorDescription: " + VendorDescription + 
+                ", VendorID: " + VendorID;
         }
     }
 
