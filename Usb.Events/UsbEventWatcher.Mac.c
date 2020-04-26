@@ -12,7 +12,22 @@ typedef struct MyPrivateData {
     UInt32					locationID;
 } MyPrivateData;
 
-typedef void (*WatcherCallback)(char* message);
+typedef struct UsbDevice
+{
+    char DeviceName[255];
+    char DevicePath[255];
+    char Product[255];
+    char ProductDescription[255];
+    char ProductID[255];
+    char SerialNumber[255];
+    char Vendor[255];
+    char VendorDescription[255];
+    char VendorID[255];
+} UsbDevice;
+
+UsbDevice usbDevice;
+
+typedef void (*WatcherCallback)(UsbDevice usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
 

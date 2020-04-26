@@ -9,7 +9,22 @@
 
 #define SUBSYSTEM "usb"
 
-typedef void (*WatcherCallback)(char* message);
+typedef struct UsbDevice
+{
+    char DeviceName[255];
+    char DevicePath[255];
+    char Product[255];
+    char ProductDescription[255];
+    char ProductID[255];
+    char SerialNumber[255];
+    char Vendor[255];
+    char VendorDescription[255];
+    char VendorID[255];
+} UsbDevice;
+
+UsbDevice usbDevice;
+
+typedef void (*WatcherCallback)(UsbDevice usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
 
@@ -21,6 +36,7 @@ void print_device(struct udev_device* dev)
     if (! action)
         action = "exists";
 
+    /*
     sprintf(buffer, "%s ; %s ; %s ; %s ; %s ; %s ; %s ; %s ; %s",
         udev_device_get_devpath(dev),   // /devices/pci0000:00/0000:00:06.0/usb1/1-2
         udev_device_get_subsystem(dev), // usb
@@ -61,15 +77,26 @@ void print_device(struct udev_device* dev)
         strcat(buffer, value);
         strcat(buffer, " ; ");
     }
+    /**/
+
+    strcpy(usbDevice.DeviceName, udev_device_get_property_value(dev, "DEVNAME"));
+    strcpy(usbDevice.DevicePath, udev_device_get_property_value(dev, "DEVPATH"));
+    strcpy(usbDevice.Product, udev_device_get_property_value(dev, "ID_MODEL"));
+    strcpy(usbDevice.ProductDescription, udev_device_get_property_value(dev, "ID_MODEL_FROM_DATABASE"));
+    strcpy(usbDevice.ProductID, udev_device_get_property_value(dev, "ID_MODEL_ID"));
+    strcpy(usbDevice.SerialNumber, udev_device_get_property_value(dev, "ID_SERIAL_SHORT"));
+    strcpy(usbDevice.Vendor, udev_device_get_property_value(dev, "ID_VENDOR"));
+    strcpy(usbDevice.VendorDescription, udev_device_get_property_value(dev, "ID_VENDOR_FROM_DATABASE"));
+    strcpy(usbDevice.VendorID, udev_device_get_property_value(dev, "ID_VENDOR_ID"));
 
     if (strcmp(action, "add") == 0)
     {
-        InsertedCallback(buffer);
+        InsertedCallback(usbDevice);
     }
 
     if (strcmp(action, "remove") == 0)
     {
-        RemovedCallback(buffer);
+        RemovedCallback(usbDevice);
     }
 }
 
@@ -147,19 +174,6 @@ extern "C" {
 
         udev_unref(udev);
     }
-
-    /*
-    char result[100] = "Linux received a message: ";
-
-    char* DelegateTest(char* message, WatcherCallback testCallback)
-    {
-        strcat(result, message);
-
-        testCallback(result);
-
-        return result;
-    }
-    /**/
 
 #ifdef __cplusplus
 }

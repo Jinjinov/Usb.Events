@@ -8,9 +8,9 @@ namespace Usb.Events.Test
 
         static void Main(string[] _)
         {
-            foreach (string driveName in usbEventWatcher.UsbDrivePathList)
+            foreach (string path in usbEventWatcher.UsbDrivePathList)
             {
-                Console.WriteLine(driveName);
+                Console.WriteLine(path);
             }
 
             usbEventWatcher.UsbDriveInserted += (_, path) => Console.WriteLine($"Drive {path} inserted!");

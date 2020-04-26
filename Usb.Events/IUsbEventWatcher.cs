@@ -1,16 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Usb.Events
 {
-    public class UsbDevice
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public struct UsbDevice
     {
-        public string Manufacturer { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Path { get; set; } = string.Empty;
-        public string Serial { get; set; } = string.Empty;
-        public string ProductID { get; set; } = string.Empty;
-        public string VendorID { get; set; } = string.Empty;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string DeviceName;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string DevicePath;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string Product;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string ProductDescription;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string ProductID;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string SerialNumber;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string Vendor;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string VendorDescription;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        public string VendorID;
     }
 
     public interface IUsbEventWatcher

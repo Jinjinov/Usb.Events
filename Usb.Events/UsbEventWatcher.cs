@@ -45,31 +45,51 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                //string message = Marshal.PtrToStringAuto(DelegateTest("To Linux", back => Console.WriteLine(back)));
-                //Console.WriteLine(message);
-
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
             }
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void WatcherCallback(string driveName);
+        delegate void WatcherCallback(UsbDevice usbDevice);
 
-        private void InsertedCallback(string driveName)
+        private void InsertedCallback(UsbDevice usbDevice)
         {
-            UsbDriveInserted?.Invoke(this, driveName);
-
-            UsbDrivePathList.Add(driveName);
+            OnDriveInserted(usbDevice.DevicePath);
+            OnDeviceInserted(usbDevice);
         }
 
-        private void RemovedCallback(string driveName)
+        private void RemovedCallback(UsbDevice usbDevice)
         {
-            UsbDriveRemoved?.Invoke(this, driveName);
+            OnDriveRemoved(usbDevice.DevicePath);
+            OnDeviceRemoved(usbDevice);
+        }
 
-            if (UsbDrivePathList.Contains(driveName))
-            {
-                UsbDrivePathList.Remove(driveName);
-            }
+        private void OnDriveInserted(string path)
+        {
+            UsbDriveInserted?.Invoke(this, path);
+            UsbDrivePathList.Add(path);
+        }
+
+        private void OnDriveRemoved(string path)
+        {
+            UsbDriveRemoved?.Invoke(this, path);
+
+            if (UsbDrivePathList.Contains(path))
+                UsbDrivePathList.Remove(path);
+        }
+
+        private void OnDeviceInserted(UsbDevice usbDevice)
+        {
+            UsbDeviceInserted?.Invoke(this, usbDevice);
+            UsbDeviceList.Add(usbDevice);
+        }
+
+        private void OnDeviceRemoved(UsbDevice usbDevice)
+        {
+            UsbDeviceRemoved?.Invoke(this, usbDevice);
+
+            if (UsbDeviceList.Any(device => device.SerialNumber == usbDevice.SerialNumber))
+                UsbDeviceList.Remove(UsbDeviceList.First(device => device.SerialNumber == usbDevice.SerialNumber));
         }
 
         #region Linux methods
@@ -77,9 +97,6 @@ namespace Usb.Events
         // https://github.com/PaulStoffregen/SerialDiscovery_JSON/blob/master/SerialDiscovery.c
         // https://github.com/MadLittleMods/node-usb-detection/blob/master/src/detection_linux.cpp
         // https://chromium.googlesource.com/chromiumos/platform/cros-disks/+/c32f05bf1b37716fdab4512f38248a139006473d/udev_device.cc
-
-        //[DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        //static extern IntPtr DelegateTest(string message, WatcherCallback testCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
@@ -129,12 +146,12 @@ namespace Usb.Events
 
             if (inserted)
             {
-                InsertedCallback(driveName);
+                OnDriveInserted(driveName);
             }
 
             if (removed)
             {
-                RemovedCallback(driveName);
+                OnDriveRemoved(driveName);
             }
         }
 
@@ -153,7 +170,7 @@ namespace Usb.Events
             string description = (string)instance.Properties["Description"].Value;
             string name = (string)instance.Properties["Name"].Value;
 
-            UsbDeviceInserted?.Invoke(this, new UsbDevice { Name = name });
+            OnDeviceInserted(new UsbDevice { Product = name });
         }
 
         private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -171,7 +188,7 @@ namespace Usb.Events
             string description = (string)instance.Properties["Description"].Value;
             string name = (string)instance.Properties["Name"].Value;
 
-            UsbDeviceRemoved?.Invoke(this, new UsbDevice { Name = name });
+            OnDeviceRemoved(new UsbDevice { Product = name });
         }
 
         public void Dispose()
