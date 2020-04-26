@@ -33,6 +33,13 @@ namespace Usb.Events
 
         public UsbEventWatcher()
         {
+            Start();
+        }
+
+        #region Methods
+
+        private void Start()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 StartWindowsWatcher();
@@ -47,21 +54,6 @@ namespace Usb.Events
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
             }
-        }
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void WatcherCallback(UsbDevice usbDevice);
-
-        private void InsertedCallback(UsbDevice usbDevice)
-        {
-            OnDriveInserted(usbDevice.DevicePath);
-            OnDeviceInserted(usbDevice);
-        }
-
-        private void RemovedCallback(UsbDevice usbDevice)
-        {
-            OnDriveRemoved(usbDevice.DevicePath);
-            OnDeviceRemoved(usbDevice);
         }
 
         private void OnDriveInserted(string path)
@@ -88,22 +80,31 @@ namespace Usb.Events
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
 
-            if (UsbDeviceList.Any(device => device.SerialNumber == usbDevice.SerialNumber))
-                UsbDeviceList.Remove(UsbDeviceList.First(device => device.SerialNumber == usbDevice.SerialNumber));
+            if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath))
+                UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath));
         }
-
-        #region Linux methods
-
-        // https://github.com/PaulStoffregen/SerialDiscovery_JSON/blob/master/SerialDiscovery.c
-        // https://github.com/MadLittleMods/node-usb-detection/blob/master/src/detection_linux.cpp
-        // https://chromium.googlesource.com/chromiumos/platform/cros-disks/+/c32f05bf1b37716fdab4512f38248a139006473d/udev_device.cc
-
-        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
 
         #endregion
 
-        #region Mac methods
+        #region Linux and Mac methods
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        delegate void WatcherCallback(UsbDevice usbDevice);
+
+        private void InsertedCallback(UsbDevice usbDevice)
+        {
+            OnDriveInserted(usbDevice.DevicePath);
+            OnDeviceInserted(usbDevice);
+        }
+
+        private void RemovedCallback(UsbDevice usbDevice)
+        {
+            OnDriveRemoved(usbDevice.DevicePath);
+            OnDeviceRemoved(usbDevice);
+        }
+
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);

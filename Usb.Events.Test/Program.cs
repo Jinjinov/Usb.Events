@@ -17,9 +17,9 @@ namespace Usb.Events.Test
 
             usbEventWatcher.UsbDriveRemoved += (_, path) => Console.WriteLine($"Drive {path} removed!");
 
-            usbEventWatcher.UsbDeviceInserted += (_, device) => Console.WriteLine($"Device {device} inserted!");
+            usbEventWatcher.UsbDeviceInserted += (_, device) => Console.WriteLine($"Device {device.VendorDescription} {device.ProductDescription} inserted!");
 
-            usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine($"Device {device} removed!");
+            usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine($"Device {device.DeviceName} {device.DevicePath} removed!");
 
             Console.ReadLine();
         }
