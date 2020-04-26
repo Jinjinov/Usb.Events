@@ -161,17 +161,25 @@ namespace Usb.Events
             ManagementBaseObject instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
 #if DEBUG
+            System.Diagnostics.Debug.WriteLine(string.Empty);
+
             foreach (PropertyData property in instance.Properties)
             {
                 System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
             }
+
+            System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
-            string caption = (string)instance.Properties["Caption"].Value;
-            string description = (string)instance.Properties["Description"].Value;
-            string name = (string)instance.Properties["Name"].Value;
+            UsbDevice usbDevice = new UsbDevice
+            {
+                Product = (string)instance.Properties["Caption"].Value,
+                ProductDescription = (string)instance.Properties["Description"].Value,
+                DeviceName = (string)instance.Properties["Name"].Value,
+                Vendor = (string)instance.Properties["Manufacturer"].Value
+            };
 
-            OnDeviceInserted(new UsbDevice { Product = name });
+            OnDeviceInserted(usbDevice);
         }
 
         private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -179,17 +187,25 @@ namespace Usb.Events
             ManagementBaseObject instance = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
 #if DEBUG
+            System.Diagnostics.Debug.WriteLine(string.Empty);
+
             foreach (PropertyData property in instance.Properties)
             {
                 System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
             }
+
+            System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
-            string caption = (string)instance.Properties["Caption"].Value;
-            string description = (string)instance.Properties["Description"].Value;
-            string name = (string)instance.Properties["Name"].Value;
+            UsbDevice usbDevice = new UsbDevice
+            {
+                Product = (string)instance.Properties["Caption"].Value,
+                ProductDescription = (string)instance.Properties["Description"].Value,
+                DeviceName = (string)instance.Properties["Name"].Value,
+                Vendor = (string)instance.Properties["Manufacturer"].Value
+            };
 
-            OnDeviceRemoved(new UsbDevice { Product = name });
+            OnDeviceRemoved(usbDevice);
         }
 
         public void Dispose()
