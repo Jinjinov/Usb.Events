@@ -51,7 +51,7 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 {
 	int result;
 
-	if (CFNumberGetValue(cfVal, kCFNumberSInt32Type, &amp; result))
+	if (CFNumberGetValue(cfVal, kCFNumberSInt32Type, &result))
 	{
 		printf("%s %i\n", prefix, result);
 	}
@@ -151,7 +151,7 @@ void init_notifier()
 {
 	notificationPort = IONotificationPortCreate(kIOMasterPortDefault);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
-	printf("init_notifier ---&gt; Ok\n");
+	printf("init_notifier ---> Ok\n");
 }
 
 void configure_and_start_notifier()
@@ -168,7 +168,7 @@ void configure_and_start_notifier()
 	kern_return_t addResult;
 
 	io_iterator_t deviceAddedIter;
-	addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &amp; deviceAddedIter);
+	addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &deviceAddedIter);
 
 	if (addResult != KERN_SUCCESS)
 	{
@@ -179,7 +179,7 @@ void configure_and_start_notifier()
 	usb_device_added(NULL, deviceAddedIter);
 
 	io_iterator_t deviceRemovedIter;
-	addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &amp; deviceRemovedIter);
+	addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &deviceRemovedIter);
 
 	if (addResult != KERN_SUCCESS)
 	{
@@ -196,7 +196,7 @@ void deinit_notifier()
 {
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	IONotificationPortDestroy(notificationPort);
-	printf("deinit_notifier ---&gt; Ok\n");
+	printf("deinit_notifier ---> Ok\n");
 }
 
 void signal_handler(int signum)
