@@ -1,4 +1,5 @@
 #include <CoreFoundation/CoreFoundation.h>
+
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOMessage.h>
 #include <IOKit/IOCFPlugIn.h>
@@ -51,6 +52,8 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
     
     if (messageType == kIOMessageServiceIsTerminated)
     {
+        RemovedCallback(usbDevice);
+
         fprintf(stderr, "Device removed.\n");
     
         // Dump our private data to stderr just to see what it looks like.
@@ -124,6 +127,8 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
         
         // Save the device's name to our private data.        
         privateDataRef->deviceName = deviceNameAsCFString;
+
+        InsertedCallback(usbDevice);
                                                 
         // Now, get the locationID of this device. In order to do this, we need to create an IOUSBDeviceInterface 
         // for our device. This will create the necessary connections between our userland application and the 
