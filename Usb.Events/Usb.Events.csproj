@@ -42,14 +42,16 @@
   </Target>
 
   <ItemGroup>
-    <_NativeLibraries Include="$(NativeOutputDir)UsbEventWatcher.Linux.so" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Linux.so')" />
-    <_NativeLibraries Include="$(NativeOutputDir)UsbEventWatcher.Mac.dylib" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Mac.dylib')" />
-    <Content Include="@(_NativeLibraries)">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>%(Filename)%(Extension)</Link>
+    <None Include="$(NativeOutputDir)UsbEventWatcher.Linux.so" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
-      <PackagePath>runtimes/$(NativeAssetRuntimeIdentifier)/native/%(Filename)%(Extension)</PackagePath>
-    </Content>
+      <PackagePath>runtimes/linux-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(NativeOutputDir)UsbEventWatcher.Mac.dylib" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Mac.dylib')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   
 </Project>
