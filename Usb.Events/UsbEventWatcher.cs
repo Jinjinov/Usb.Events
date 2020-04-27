@@ -86,6 +86,11 @@ namespace Usb.Events
 
         #endregion
 
+        // https://sudonull.com/post/141779-Working-with-USB-devices-in-a-C-program-on-MacOS-X
+        // https://habr.com/ru/post/145855/
+        // https://gist.github.com/JRHeaton/402493
+        // gcc usbnotify.c -framework IOKit -framework Foundation -o notifier
+
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
