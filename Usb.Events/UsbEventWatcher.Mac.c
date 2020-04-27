@@ -71,9 +71,13 @@ void get_usb_device_info(io_service_t device, int newdev)
 
 	printf("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
 
+	strcpy(usbDevice.DeviceName, devicename);
+
 	if (IORegistryEntryGetPath(device, kIOServicePlane, entrypath) == KERN_SUCCESS)
 	{
 		printf("\tDevice entry path: %s\n", entrypath);
+
+		strcpy(usbDevice.DevicePath, entrypath);
 	}
 
 	if (IOObjectGetClass(device, classname) == KERN_SUCCESS)
@@ -90,6 +94,18 @@ void get_usb_device_info(io_service_t device, int newdev)
 	if (vendorname)
 	{
 		print_cfstringref("\tDevice vendor name:", vendorname);
+
+		char* cVal = malloc(CFStringGetLength(vendorname) * sizeof(char));
+		if (cVal)
+		{
+			if (CFStringGetCString(vendorname, cVal, CFStringGetLength(vendorname) + 1, kCFStringEncodingASCII))
+			{
+				strcpy(usbDevice.Vendor, cVal);
+				strcpy(usbDevice.VendorDescription, cVal);
+			}
+
+			free(cVal);
+		}
 	}
 
 	CFNumberRef vendorId = (CFNumberRef)IORegistryEntrySearchCFProperty(device
@@ -98,9 +114,16 @@ void get_usb_device_info(io_service_t device, int newdev)
 		, NULL
 		, kIORegistryIterateRecursively | kIORegistryIterateParents);
 
+	int result;
+
 	if (vendorId)
 	{
 		print_cfnumberref("\tVendor id:", vendorId);
+
+		if (CFNumberGetValue(vendorId, kCFNumberSInt32Type, &result))
+		{
+			sprintf(usbDevice.VendorID, "%d", result);
+		}
 	}
 
 	CFNumberRef productId = (CFNumberRef)IORegistryEntrySearchCFProperty(device
@@ -112,6 +135,11 @@ void get_usb_device_info(io_service_t device, int newdev)
 	if (productId)
 	{
 		print_cfnumberref("\tProduct id:", productId);
+
+		if (CFNumberGetValue(productId, kCFNumberSInt32Type, &result))
+		{
+			sprintf(usbDevice.ProductID, "%d", result);
+		}
 	}
 
 	printf("\n");
