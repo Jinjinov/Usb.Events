@@ -63,6 +63,9 @@ void get_usb_device_info(io_service_t device, int newdev)
 	io_name_t entrypath;
 	io_name_t classname;
 
+	char* cVal;
+	int result;
+
 	if (IORegistryEntryGetName(device, devicename) != KERN_SUCCESS)
 	{
 		fprintf(stderr, "%s unknown device (unable to get device name)\n", newdev ? "Added " : " Removed");
@@ -95,7 +98,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 	{
 		print_cfstringref("\tDevice vendor name:", vendorname);
 
-		char* cVal = malloc(CFStringGetLength(vendorname) * sizeof(char));
+		cVal = malloc(CFStringGetLength(vendorname) * sizeof(char));
 		if (cVal)
 		{
 			if (CFStringGetCString(vendorname, cVal, CFStringGetLength(vendorname) + 1, kCFStringEncodingASCII))
@@ -114,8 +117,6 @@ void get_usb_device_info(io_service_t device, int newdev)
 		, NULL
 		, kIORegistryIterateRecursively | kIORegistryIterateParents);
 
-	int result;
-
 	if (vendorId)
 	{
 		print_cfnumberref("\tVendor id:", vendorId);
@@ -123,6 +124,29 @@ void get_usb_device_info(io_service_t device, int newdev)
 		if (CFNumberGetValue(vendorId, kCFNumberSInt32Type, &result))
 		{
 			sprintf(usbDevice.VendorID, "%d", result);
+		}
+	}
+
+	CFStringRef productname = (CFStringRef)IORegistryEntrySearchCFProperty(device
+		, kIOServicePlane
+		, CFSTR("USB Product Name")
+		, NULL
+		, kIORegistryIterateRecursively | kIORegistryIterateParents);
+
+	if (productname)
+	{
+		print_cfstringref("\tDevice product name:", productname);
+
+		cVal = malloc(CFStringGetLength(productname) * sizeof(char));
+		if (cVal)
+		{
+			if (CFStringGetCString(productname, cVal, CFStringGetLength(productname) + 1, kCFStringEncodingASCII))
+			{
+				strcpy(usbDevice.Product, cVal);
+				strcpy(usbDevice.ProductDescription, cVal);
+			}
+
+			free(cVal);
 		}
 	}
 
@@ -139,6 +163,28 @@ void get_usb_device_info(io_service_t device, int newdev)
 		if (CFNumberGetValue(productId, kCFNumberSInt32Type, &result))
 		{
 			sprintf(usbDevice.ProductID, "%d", result);
+		}
+	}
+
+	CFStringRef serialnumber = (CFStringRef)IORegistryEntrySearchCFProperty(device
+		, kIOServicePlane
+		, CFSTR("USB Serial Number")
+		, NULL
+		, kIORegistryIterateRecursively | kIORegistryIterateParents);
+
+	if (serialnumber)
+	{
+		print_cfstringref("\tDevice serial number:", serialnumber);
+
+		cVal = malloc(CFStringGetLength(serialnumber) * sizeof(char));
+		if (cVal)
+		{
+			if (CFStringGetCString(serialnumber, cVal, CFStringGetLength(serialnumber) + 1, kCFStringEncodingASCII))
+			{
+				strcpy(usbDevice.SerialNumber, cVal);
+			}
+
+			free(cVal);
 		}
 	}
 
