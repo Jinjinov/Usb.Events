@@ -1,11 +1,11 @@
 #include <CoreFoundation/CoreFoundation.h>
-
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOMessage.h>
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/usb/IOUSBLib.h>
 
-typedef struct MyPrivateData {
+typedef struct MyPrivateData
+{
     io_object_t				notification;
     IOUSBDeviceInterface	**deviceInterface;
     CFStringRef				deviceName;
@@ -49,18 +49,20 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
     kern_return_t	kr;
     MyPrivateData	*privateDataRef = (MyPrivateData *) refCon;
     
-    if (messageType == kIOMessageServiceIsTerminated) {
+    if (messageType == kIOMessageServiceIsTerminated)
+    {
         fprintf(stderr, "Device removed.\n");
     
         // Dump our private data to stderr just to see what it looks like.
         fprintf(stderr, "privateDataRef->deviceName: ");
 		CFShow(privateDataRef->deviceName);
-		fprintf(stderr, "privateDataRef->locationID: 0x%lx.\n\n", privateDataRef->locationID);
+		fprintf(stderr, "privateDataRef->locationID: 0x%lx.\n\n", (unsigned int)privateDataRef->locationID);
     
         // Free the data we're no longer using now that the device is going away
         CFRelease(privateDataRef->deviceName);
         
-        if (privateDataRef->deviceInterface) {
+        if (privateDataRef->deviceInterface)
+        {
             kr = (*privateDataRef->deviceInterface)->Release(privateDataRef->deviceInterface);
         }
         
@@ -92,7 +94,8 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
     SInt32				score;
     HRESULT 			res;
     
-    while ((usbDevice = IOIteratorNext(iterator))) {
+    while ((usbDevice = IOIteratorNext(iterator)))
+    {
         io_name_t		deviceName;
         CFStringRef		deviceNameAsCFString;	
         MyPrivateData	*privateDataRef = NULL;
@@ -107,12 +110,13 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
         
         // Get the USB device's name.
         kr = IORegistryEntryGetName(usbDevice, deviceName);
-		if (KERN_SUCCESS != kr) {
+
+		if (KERN_SUCCESS != kr)
+        {
             deviceName[0] = '\0';
         }
         
-        deviceNameAsCFString = CFStringCreateWithCString(kCFAllocatorDefault, deviceName, 
-                                                         kCFStringEncodingASCII);
+        deviceNameAsCFString = CFStringCreateWithCString(kCFAllocatorDefault, deviceName, kCFStringEncodingASCII);
         
         // Dump our data to stderr just to see what it looks like.
         fprintf(stderr, "deviceName: ");
@@ -124,22 +128,22 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
         // Now, get the locationID of this device. In order to do this, we need to create an IOUSBDeviceInterface 
         // for our device. This will create the necessary connections between our userland application and the 
         // kernel object for the USB Device.
-        kr = IOCreatePlugInInterfaceForService(usbDevice, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID,
-                                               &plugInInterface, &score);
+        kr = IOCreatePlugInInterfaceForService(usbDevice, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &plugInInterface, &score);
 
-        if ((kIOReturnSuccess != kr) || !plugInInterface) {
+        if ((kIOReturnSuccess != kr) || !plugInInterface)
+        {
             fprintf(stderr, "IOCreatePlugInInterfaceForService returned 0x%08x.\n", kr);
             continue;
         }
 
         // Use the plugin interface to retrieve the device interface.
-        res = (*plugInInterface)->QueryInterface(plugInInterface, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID),
-                                                 (LPVOID*) &privateDataRef->deviceInterface);
+        res = (*plugInInterface)->QueryInterface(plugInInterface, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (LPVOID*) &privateDataRef->deviceInterface);
         
         // Now done with the plugin interface.
         (*plugInInterface)->Release(plugInInterface);
         			
-        if (res || privateDataRef->deviceInterface == NULL) {
+        if (res || privateDataRef->deviceInterface == NULL)
+        {
             fprintf(stderr, "QueryInterface returned %d.\n", (int) res);
             continue;
         }
@@ -149,12 +153,15 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
         // and will remain the same, even across reboots, so long as the bus topology doesn't change.
         
         kr = (*privateDataRef->deviceInterface)->GetLocationID(privateDataRef->deviceInterface, &locationID);
-        if (KERN_SUCCESS != kr) {
+
+        if (KERN_SUCCESS != kr)
+        {
             fprintf(stderr, "GetLocationID returned 0x%08x.\n", kr);
             continue;
         }
-        else {
-            fprintf(stderr, "Location ID: 0x%lx\n\n", locationID);
+        else
+        {
+            fprintf(stderr, "Location ID: 0x%lx\n\n", (unsigned int)locationID);
         }
 
         privateDataRef->locationID = locationID;
@@ -169,7 +176,8 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
 											  &(privateDataRef->notification)	// notification
 											  );
                                                 
-        if (KERN_SUCCESS != kr) {
+        if (KERN_SUCCESS != kr)
+        {
             printf("IOServiceAddInterestNotification returned 0x%08x.\n", kr);
         }
         
@@ -181,6 +189,7 @@ void DeviceAdded(void *refCon, io_iterator_t iterator)
 #ifdef __cplusplus
 extern "C" {
 #endif
+
     void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback)
     {
         InsertedCallback = insertedCallback;
@@ -200,7 +209,8 @@ extern "C" {
 
         matchingDict = IOServiceMatching(kIOUSBDeviceClassName);	// Interested in instances of class
                                                                     // IOUSBDevice and its subclasses
-        if (matchingDict == NULL) {
+        if (matchingDict == NULL)
+        {
             fprintf(stderr, "IOServiceMatching returned NULL.\n");
             return;
         }
@@ -215,12 +225,12 @@ extern "C" {
         CFRunLoopAddSource(gRunLoop, runLoopSource, kCFRunLoopDefaultMode);
 
         // Now set up a notification to be called when a device is first matched by I/O Kit.
-        kr = IOServiceAddMatchingNotification(gNotifyPort,					// notifyPort
-            kIOFirstMatchNotification,	// notificationType
-            matchingDict,					// matching
-            DeviceAdded,					// callback
-            NULL,							// refCon
-            &gAddedIter					// notification
+        kr = IOServiceAddMatchingNotification(gNotifyPort,			// notifyPort
+            kIOFirstMatchNotification,	                            // notificationType
+            matchingDict,					                        // matching
+            DeviceAdded,					                        // callback
+            NULL,							                        // refCon
+            &gAddedIter					                            // notification
         );
 
         // Iterate once to get already-present devices and arm the notification    
@@ -233,6 +243,7 @@ extern "C" {
         // We should never get here
         fprintf(stderr, "Unexpectedly back from CFRunLoopRun()!\n");
     }
+
 #ifdef __cplusplus
 }
 #endif

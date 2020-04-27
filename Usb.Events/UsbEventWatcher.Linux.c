@@ -1,8 +1,3 @@
-/* List and monitor USB devices using libudev.
- *
- * gcc -o udev_monitor_usb udev_monitor_usb.c -ludev
- * ./udev_monitor_usb
- */
 #include <libudev.h>
 #include <stdio.h>
 #include <string.h>
@@ -30,7 +25,7 @@ WatcherCallback RemovedCallback;
 
 char buffer[4096];
 
-void print_device(struct udev_device* dev)
+void GetDeviceInfo(struct udev_device* dev)
 {
     const char* action = udev_device_get_action(dev);
     if (! action)
@@ -133,17 +128,20 @@ void print_device(struct udev_device* dev)
     }
 }
 
-void process_device(struct udev_device* dev)
+void ProcessDevice(struct udev_device* dev)
 {
-    if (dev) {
+    if (dev)
+    {
         if (udev_device_get_devnode(dev))
-            print_device(dev);
+        {
+            GetDeviceInfo(dev);
+        }
 
         udev_device_unref(dev);
     }
 }
 
-void enumerate_devices(struct udev* udev)
+void EnumerateDevices(struct udev* udev)
 {
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
@@ -153,16 +151,18 @@ void enumerate_devices(struct udev* udev)
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     struct udev_list_entry* entry;
 
-    udev_list_entry_foreach(entry, devices) {
+    udev_list_entry_foreach(entry, devices)
+    {
         const char* path = udev_list_entry_get_name(entry);
         struct udev_device* dev = udev_device_new_from_syspath(udev, path);
-        process_device(dev);
+
+        ProcessDevice(dev);
     }
 
     udev_enumerate_unref(enumerate);
 }
 
-void monitor_devices(struct udev* udev)
+void MonitorDevices(struct udev* udev)
 {
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
 
@@ -171,18 +171,24 @@ void monitor_devices(struct udev* udev)
 
     int fd = udev_monitor_get_fd(mon);
 
-    while (1) {
+    while (1)
+    {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
 
         int ret = select(fd+1, &fds, NULL, NULL, NULL);
-        if (ret <= 0)
-            break;
 
-        if (FD_ISSET(fd, &fds)) {
+        if (ret <= 0)
+        {
+            break;
+        }
+
+        if (FD_ISSET(fd, &fds))
+        {
             struct udev_device* dev = udev_monitor_receive_device(mon);
-            process_device(dev);
+
+            ProcessDevice(dev);
         }
     }
 }
@@ -197,13 +203,15 @@ extern "C" {
         RemovedCallback = removedCallback;
 
         struct udev* udev = udev_new();
-        if (!udev) {
+
+        if (!udev)
+        {
             fprintf(stderr, "udev_new() failed\n");
             return;
         }
 
-        enumerate_devices(udev);
-        monitor_devices(udev);
+        EnumerateDevices(udev);
+        MonitorDevices(udev);
 
         udev_unref(udev);
     }
