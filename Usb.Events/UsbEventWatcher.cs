@@ -40,17 +40,17 @@ namespace Usb.Events
 
         private void Start()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 StartWindowsWatcher();
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || Environment.OSVersion.Platform == PlatformID.MacOSX)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) // Environment.OSVersion.Platform == PlatformID.MacOSX)
             {
                 Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || Environment.OSVersion.Platform == PlatformID.Unix)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
             }
@@ -85,11 +85,6 @@ namespace Usb.Events
         }
 
         #endregion
-
-        // https://sudonull.com/post/141779-Working-with-USB-devices-in-a-C-program-on-MacOS-X
-        // https://habr.com/ru/post/145855/
-        // https://gist.github.com/JRHeaton/402493
-        // gcc usbnotify.c -framework IOKit -framework Foundation -o notifier
 
         #region Linux and Mac methods
 
