@@ -28,3 +28,8 @@ How to use:
                 Console.ReadLine();
             }
         }
+
+Version history:
+
+- 1.0.1: Events for all USB devices
+- 1.0.0: Events for USB drives and USB storage devices
