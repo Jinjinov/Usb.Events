@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.0.0" />
+        <PackageReference Include="Usb.Events" Version="1.0.1" />
         
 2. Subscribe to events:
 
