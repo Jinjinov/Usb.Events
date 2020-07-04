@@ -126,12 +126,12 @@ namespace Usb.Events
 
             _instanceCreationEventWatcher = new ManagementEventWatcher();
             _instanceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(InstanceCreationEventWatcher_EventArrived);
-            _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'");
             _instanceCreationEventWatcher.Start();
 
             _instanceDeletionEventWatcher = new ManagementEventWatcher();
             _instanceDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(InstanceDeletionEventWatcher_EventArrived);
-            _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'");
             _instanceDeletionEventWatcher.Start();
         }
 
@@ -162,28 +162,28 @@ namespace Usb.Events
 
         private void InstanceCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+            ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            UsbDevice usbDevice = GetUsbDevice(Win32_USBHub);
+            UsbDevice usbDevice = GetUsbDevice(Win32_USBControllerDevice);
 
             OnDeviceInserted(usbDevice);
         }
 
         private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+            ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            UsbDevice usbDevice = GetUsbDevice(Win32_USBHub);
+            UsbDevice usbDevice = GetUsbDevice(Win32_USBControllerDevice);
 
             OnDeviceRemoved(usbDevice);
         }
 
-        private static UsbDevice GetUsbDevice(ManagementBaseObject Win32_USBHub)
+        private static UsbDevice GetUsbDevice(ManagementBaseObject Win32_USBControllerDevice)
         {
 #if DEBUG
             System.Diagnostics.Debug.WriteLine(string.Empty);
 
-            foreach (PropertyData property in Win32_USBHub.Properties)
+            foreach (PropertyData property in Win32_USBControllerDevice.Properties)
             {
                 System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
             }
@@ -191,16 +191,24 @@ namespace Usb.Events
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
 
-            string deviceID = Win32_USBHub["DeviceID"].ToString();
+            string dependent = Win32_USBControllerDevice["Dependent"].ToString();
+            string[] dependentInfo = dependent.Split('"');
+            string deviceID = dependentInfo[1];
 
-            string[] info = deviceID.Split('\\');
+            string[] deviceInfo = deviceID.Split('\\');
 
-            string[] id = info[1].Split('&');
+            string[] id = deviceInfo[2].Split('&');
 
-            string vendorId = id[0].Substring(4, 4);
-            string productId = id[1].Substring(4, 4);
+            string vendorId = string.Empty;
+            string productId = string.Empty;
 
-            string serial = info[2];
+            if (id.Length >= 2)
+            {
+                vendorId = id[0].Substring(4, 4);
+                productId = id[1].Substring(4, 4);
+            }
+
+            string serial = deviceInfo[4];
 
             UsbDevice usbDevice = new UsbDevice
             {
@@ -209,18 +217,39 @@ namespace Usb.Events
                 VendorID = vendorId
             };
 
-            string ClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
+            string WindowsPortableDevicesClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
 
-            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher(
-                $"SELECT Caption, Description, Manufacturer FROM Win32_PnPEntity WHERE ClassGuid = '{ClassGuid}' AND DeviceID LIKE '%{serial}%'");
+#if DEBUG
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
+#else
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
+#endif
 
             foreach (ManagementObject entity in Win32_PnPEntity.Get())
             {
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine(string.Empty);
+
+                foreach (PropertyData property in entity.Properties)
+                {
+                    System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
+                }
+
+                System.Diagnostics.Debug.WriteLine(string.Empty);
+#endif
+
                 usbDevice.DeviceName = entity["Caption"].ToString().Trim();
                 usbDevice.Product = entity["Description"].ToString().Trim();
                 usbDevice.ProductDescription = entity["Description"].ToString().Trim();
                 usbDevice.Vendor = entity["Manufacturer"].ToString().Trim();
                 usbDevice.VendorDescription = entity["Manufacturer"].ToString().Trim();
+
+                string ClassGuid = entity["ClassGuid"].ToString().Trim();
+
+                // most USB devices have only one ManagementObject that contains Caption, Description, Manufacturer
+                // but USB flash drives have several ManagementObject-s and only WindowsPortableDevices has useful info
+                if (ClassGuid == WindowsPortableDevicesClassGuid)
+                    break;
             }
 
             using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
