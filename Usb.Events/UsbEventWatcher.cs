@@ -80,6 +80,9 @@ namespace Usb.Events
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
 
+            // TODO:: windows: only "PID, VID, serial" are available on remove
+            // TODO:: mac: TEST!!!
+            // TODO:: linux: TEST!!!
             if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath))
                 UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath));
         }
@@ -124,6 +127,8 @@ namespace Usb.Events
             _volumeChangeEventWatcher.Query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2 or EventType = 3");
             _volumeChangeEventWatcher.Start();
 
+            // TODO:: use Win32_USBHub to get usbDevice.DevicePath
+
             _instanceCreationEventWatcher = new ManagementEventWatcher();
             _instanceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(InstanceCreationEventWatcher_EventArrived);
             _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'");
@@ -164,51 +169,76 @@ namespace Usb.Events
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            UsbDevice usbDevice = GetUsbDevice(Win32_USBControllerDevice);
+            string deviceID = GetDeviceID(Win32_USBControllerDevice);
 
-            OnDeviceInserted(usbDevice);
+            UsbDevice? usbDevice = GetUsbDevice(deviceID);
+
+            if (usbDevice != null)
+                OnDeviceInserted(usbDevice.Value);
         }
 
         private void InstanceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            UsbDevice usbDevice = GetUsbDevice(Win32_USBControllerDevice);
+            string deviceID = GetDeviceID(Win32_USBControllerDevice);
 
-            OnDeviceRemoved(usbDevice);
+            UsbDevice? usbDevice = GetUsbDevice(deviceID);
+
+            if (usbDevice != null)
+                OnDeviceRemoved(usbDevice.Value);
         }
 
-        private static UsbDevice GetUsbDevice(ManagementBaseObject Win32_USBControllerDevice)
+        private static void DebugOutput(ManagementBaseObject managementBaseObject)
         {
 #if DEBUG
             System.Diagnostics.Debug.WriteLine(string.Empty);
 
-            foreach (PropertyData property in Win32_USBControllerDevice.Properties)
+            foreach (PropertyData property in managementBaseObject.Properties)
             {
                 System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
             }
 
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
+        }
+
+        private static string GetDeviceID(ManagementBaseObject Win32_USBControllerDevice)
+        {
+            DebugOutput(Win32_USBControllerDevice);
 
             string dependent = Win32_USBControllerDevice["Dependent"].ToString();
             string[] dependentInfo = dependent.Split('"');
-            string deviceID = dependentInfo[1];
 
+            if (dependentInfo.Length < 2)
+                return string.Empty;
+
+            return dependentInfo[1].Replace(@"\\", @"\");
+        }
+
+        private static UsbDevice? GetUsbDevice(string deviceID)
+        {
             string[] deviceInfo = deviceID.Split('\\');
 
-            string[] id = deviceInfo[2].Split('&');
+            if (deviceInfo.Length < 3)
+                return null;
 
-            string vendorId = string.Empty;
-            string productId = string.Empty;
+            string[] id = deviceInfo[1].Split('&');
 
-            if (id.Length >= 2)
-            {
-                vendorId = id[0].Substring(4, 4);
-                productId = id[1].Substring(4, 4);
-            }
+            if (id.Length < 2)
+                return null;
 
-            string serial = deviceInfo[4];
+            if (id[0].Length != 8 || !id[0].StartsWith("VID_"))
+                return null;
+
+            string vendorId = id[0].Substring(4, 4);
+
+            if (id[1].Length != 8 || !id[1].StartsWith("PID_"))
+                return null;
+
+            string productId = id[1].Substring(4, 4);
+
+            string serial = deviceInfo[2];
 
             UsbDevice usbDevice = new UsbDevice
             {
@@ -227,16 +257,7 @@ namespace Usb.Events
 
             foreach (ManagementObject entity in Win32_PnPEntity.Get())
             {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(string.Empty);
-
-                foreach (PropertyData property in entity.Properties)
-                {
-                    System.Diagnostics.Debug.WriteLine(property.Name + " = " + property.Value);
-                }
-
-                System.Diagnostics.Debug.WriteLine(string.Empty);
-#endif
+                DebugOutput(entity);
 
                 usbDevice.DeviceName = entity["Caption"].ToString().Trim();
                 usbDevice.Product = entity["Description"].ToString().Trim();
