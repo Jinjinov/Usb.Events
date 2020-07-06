@@ -313,10 +313,33 @@ namespace Usb.Events
                 // most USB devices have only one ManagementObject that contains Caption, Description, Manufacturer
                 // but USB flash drives have several ManagementObject-s and only WindowsPortableDevices has useful info
                 if (ClassGuid == WindowsPortableDevicesClassGuid)
+                {
                     break;
+                }
             }
 
-            usbDevice.DevicePath = GetDevicePath(serial);
+            using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{serial}%'");
+
+            if (Win32_USBHub.Get().Count > 0)
+            {
+                int attempts = 0;
+
+                while (++attempts < 9000)
+                {
+                    usbDevice.DevicePath = GetDevicePath(serial);
+
+                    if (string.IsNullOrEmpty(usbDevice.DevicePath))
+                    {
+                        System.Threading.Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("attempts " + attempts);
+            }
 
             return usbDevice;
         }
