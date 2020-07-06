@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Usb.Events
 {
@@ -34,15 +35,15 @@ namespace Usb.Events
 
         public override string ToString()
         {
-            return "DeviceName: " + DeviceName +
-                ", DevicePath: " + DevicePath +
-                ", Product: " + Product +
-                ", ProductDescription: " + ProductDescription +
-                ", ProductID: " + ProductID +
-                ", SerialNumber: " + SerialNumber +
-                ", Vendor: " + Vendor +
-                ", VendorDescription: " + VendorDescription +
-                ", VendorID: " + VendorID;
+            return "Device Name: " + DeviceName + Environment.NewLine +
+                "Device Path: " + DevicePath + Environment.NewLine +
+                "Product: " + Product + Environment.NewLine +
+                "Product Description: " + ProductDescription + Environment.NewLine +
+                "Product ID: " + ProductID + Environment.NewLine +
+                "Serial Number: " + SerialNumber + Environment.NewLine +
+                "Vendor: " + Vendor + Environment.NewLine +
+                "Vendor Description: " + VendorDescription + Environment.NewLine +
+                "Vendor ID: " + VendorID + Environment.NewLine;
         }
     }
 }
