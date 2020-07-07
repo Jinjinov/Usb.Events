@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.0.1" />
+        <PackageReference Include="Usb.Events" Version="1.0.0.1" />
         
 2. Subscribe to events:
 
@@ -31,5 +31,5 @@ How to use:
 
 Version history:
 
-- 1.0.1: Events for all USB devices
-- 1.0.0: Events for USB drives and USB storage devices
+- 1.0.0.1: Events for all USB devices
+- 1.0.0.0: Events for USB drives and USB storage devices
