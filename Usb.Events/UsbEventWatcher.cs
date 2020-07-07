@@ -313,7 +313,7 @@ namespace Usb.Events
                 usbDevice.Vendor = entity["Manufacturer"]?.ToString()?.Trim() ?? string.Empty;
                 usbDevice.VendorDescription = entity["Manufacturer"]?.ToString()?.Trim() ?? string.Empty;
 
-                string ClassGuid = entity["ClassGuid"].ToString().Trim();
+                string ClassGuid = entity["ClassGuid"]?.ToString()?.Trim() ?? string.Empty;
 
                 // most USB devices have only one ManagementObject that contains Caption, Description, Manufacturer
                 // but USB flash drives have several ManagementObject-s and only WindowsPortableDevices has useful info
@@ -343,7 +343,7 @@ namespace Usb.Events
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine("attempts " + attempts);
+                //System.Diagnostics.Debug.WriteLine("attempts " + attempts);
             }
 
             return usbDevice;
