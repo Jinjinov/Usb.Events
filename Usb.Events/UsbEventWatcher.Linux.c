@@ -19,6 +19,8 @@ typedef struct UsbDevice
 
 UsbDevice usbDevice;
 
+static const struct UsbDevice empty;
+
 typedef void (*WatcherCallback)(UsbDevice usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
@@ -80,6 +82,8 @@ void GetDeviceInfo(struct udev_device* dev)
 
     if (added || removed)
     {
+        usbDevice = empty;
+        
         const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
         if (DeviceName)
             strcpy(usbDevice.DeviceName, DeviceName);

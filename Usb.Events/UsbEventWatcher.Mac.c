@@ -24,6 +24,8 @@ typedef struct UsbDevice
 
 UsbDevice usbDevice;
 
+static const struct UsbDevice empty;
+
 typedef void (*WatcherCallback)(UsbDevice usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
@@ -71,6 +73,8 @@ void get_usb_device_info(io_service_t device, int newdev)
 		fprintf(stderr, "%s unknown device (unable to get device name)\n", newdev ? "Added " : " Removed");
 		return;
 	}
+
+	usbDevice = empty;
 
 	printf("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
 

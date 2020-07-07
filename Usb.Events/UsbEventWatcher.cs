@@ -84,11 +84,16 @@ namespace Usb.Events
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
 
-            // TODO:: windows: only "PID, VID, serial" are available on remove - with Win32_USBHub & Win32_USBControllerDevice
-            // TODO:: mac: TEST!!!
-            // TODO:: linux: TEST!!!
-            if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath))
-                UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName || device.DevicePath == usbDevice.DevicePath));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath))
+                    UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath));
+            }
+            else
+            {
+                if (UsbDeviceList.Any(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber))
+                    UsbDeviceList.Remove(UsbDeviceList.First(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber));
+            }
         }
 
         #endregion
