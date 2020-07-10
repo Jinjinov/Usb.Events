@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>Usb.Events</PackageId>
     <Product>Usb.Events</Product>
-    <Version>1.0.0.1</Version>
+    <Version>1.0.1.1</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <PackageTags>USB;Event;Insert;Remove;NET Standard;Windows;Linux;macOS</PackageTags>

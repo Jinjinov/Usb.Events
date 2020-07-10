@@ -12,8 +12,8 @@ namespace Usb.Events
     {
         #region IUsbEventWatcher
 
-        public IList<string> UsbDrivePathList { get; private set; } = new List<string>();
-        public IList<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
+        public List<string> UsbDrivePathList { get; private set; } = new List<string>();
+        public List<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
         public event EventHandler<string>? UsbDriveInserted;
         public event EventHandler<string>? UsbDriveRemoved;
@@ -86,13 +86,11 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath))
-                    UsbDeviceList.Remove(UsbDeviceList.First(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath));
+                UsbDeviceList.RemoveAll(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath);
             }
             else
             {
-                if (UsbDeviceList.Any(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber))
-                    UsbDeviceList.Remove(UsbDeviceList.First(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber));
+                UsbDeviceList.RemoveAll(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber);
             }
         }
 

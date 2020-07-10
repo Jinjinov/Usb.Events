@@ -5,8 +5,8 @@ namespace Usb.Events
 {
     public interface IUsbEventWatcher
     {
-        IList<string> UsbDrivePathList { get; }
-        IList<UsbDevice> UsbDeviceList { get; }
+        List<string> UsbDrivePathList { get; }
+        List<UsbDevice> UsbDeviceList { get; }
 
         event EventHandler<string>? UsbDriveInserted;
         event EventHandler<string>? UsbDriveRemoved;
