@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.0.1.1" />
+        <PackageReference Include="Usb.Events" Version="1.1.0.0" />
         
 2. Subscribe to events:
 
@@ -17,13 +17,21 @@ How to use:
 
             static void Main(string[] _)
             {
-                usbEventWatcher.UsbDriveInserted += (_, path) => Console.WriteLine($"Inserted: {path}");
+                usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
 
-                usbEventWatcher.UsbDriveRemoved += (_, path) => Console.WriteLine($"Removed: {path}");
+                usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
 
-                usbEventWatcher.UsbDeviceInserted += (_, device) => Console.WriteLine($"Inserted: {device}");
+                usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
 
-                usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine($"Removed: {device}");
+                usbEventWatcher.UsbDriveMounted += (_, path) =>
+                {
+                    Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+
+                    foreach (string entry in Directory.GetFileSystemEntries(path))
+                        Console.WriteLine(entry);
+
+                    Console.WriteLine();
+                };
 
                 Console.ReadLine();
             }
@@ -31,6 +39,10 @@ How to use:
 
 Version history:
 
+- 1.1.0.0: Added MountedDirectoryPath, IsMounted, IsEjected. Breaking changes:
+    - UsbDriveInserted renamed to UsbDriveMounted
+    - UsbDriveRemoved renamed to UsbDriveEjected
+    - UsbDeviceInserted renamed to UsbDeviceAdded
 - 1.0.1.1: Bug fix
 - 1.0.1.0: Events for all USB devices
 - 1.0.0.1: Bug fix
