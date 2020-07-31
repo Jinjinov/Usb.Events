@@ -51,7 +51,7 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) // Environment.OSVersion.Platform == PlatformID.MacOSX)
             {
-                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
+                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback, Message));
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
@@ -153,7 +153,7 @@ namespace Usb.Events
         static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
+        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
 
         #endregion
 
