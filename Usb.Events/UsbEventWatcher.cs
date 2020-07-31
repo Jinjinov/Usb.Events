@@ -44,17 +44,30 @@ namespace Usb.Events
 
         private void Start()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 StartWindowsWatcher();
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) // Environment.OSVersion.Platform == PlatformID.MacOSX)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback, Message));
+
+                Task.Run(async () =>
+                {
+                    while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                        {
+                            GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                        }
+
+                        await Task.Delay(100);
+                    }
+                }, _cancellationTokenSource.Token);
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, Message));
 
@@ -62,35 +75,34 @@ namespace Usb.Events
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
-                        foreach (UsbDevice usbDevice in UsbDeviceList)
+                        foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
                         {
-                            if (!string.IsNullOrEmpty(usbDevice.DeviceSystemPath))
-                            {
-                                GetMountPoint(usbDevice.DeviceSystemPath, mountPoint =>
-                                {
-                                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && !string.IsNullOrEmpty(mountPoint))
-                                    {
-                                        usbDevice.MountedDirectoryPath = mountPoint;
-                                        OnDriveInserted(usbDevice.MountedDirectoryPath);
-
-                                        usbDevice.IsEjected = false;
-                                        usbDevice.IsMounted = true;
-                                    }
-                                    else if (!string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && string.IsNullOrEmpty(mountPoint))
-                                    {
-                                        OnDriveRemoved(usbDevice.MountedDirectoryPath);
-                                        usbDevice.MountedDirectoryPath = mountPoint;
-
-                                        usbDevice.IsEjected = true;
-                                        usbDevice.IsMounted = false;
-                                    }
-                                });
-                            }
+                            GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
                         await Task.Delay(100);
                     }
                 }, _cancellationTokenSource.Token);
+            }
+        }
+
+        private void SetMountPoint(UsbDevice usbDevice, string mountPoint)
+        {
+            if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && !string.IsNullOrEmpty(mountPoint))
+            {
+                usbDevice.MountedDirectoryPath = mountPoint;
+                OnDriveInserted(usbDevice.MountedDirectoryPath);
+
+                usbDevice.IsEjected = false;
+                usbDevice.IsMounted = true;
+            }
+            else if (!string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && string.IsNullOrEmpty(mountPoint))
+            {
+                OnDriveRemoved(usbDevice.MountedDirectoryPath);
+                usbDevice.MountedDirectoryPath = mountPoint;
+
+                usbDevice.IsEjected = true;
+                usbDevice.IsMounted = false;
             }
         }
 
@@ -130,13 +142,11 @@ namespace Usb.Events
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
-            //OnDriveInserted(usbDevice.DevicePath);
             OnDeviceInserted(new UsbDevice(usbDevice));
         }
 
         private void RemovedCallback(UsbDeviceData usbDevice)
         {
-            //OnDriveRemoved(usbDevice.DevicePath);
             OnDeviceRemoved(new UsbDevice(usbDevice));
         }
 
@@ -147,10 +157,13 @@ namespace Usb.Events
         }
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetMountPoint(string syspath, MessageCallback message);
+        static extern void GetLinuxMountPoint(string syspath, MessageCallback message);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
+
+        [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
+        static extern void GetMacMountPoint(string syspath, MessageCallback message);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);

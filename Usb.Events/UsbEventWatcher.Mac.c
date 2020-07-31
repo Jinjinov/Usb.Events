@@ -215,33 +215,6 @@ void get_usb_device_info(io_service_t device, int newdev)
 		printf("\tDevice class name: %s\n", classname);
 	}
 
-	CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(device,
-		kIOServicePlane,
-		CFSTR("BSD Name"),
-		kCFAllocatorDefault,
-		kIORegistryIterateRecursively);
-
-	if (bsdName)
-	{
-		cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
-		if (cVal)
-		{
-			if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
-			{
-				strcpy(usbDevice.DeviceSystemPath, cVal);
-
-				char* mountPath = getMountPathByBSDName(cVal);
-
-				if (mountPath)
-				{
-					Message(mountPath);
-				}
-			}
-
-			free(cVal);
-		}
-	}
-
 	CFStringRef vendorname = (CFStringRef)IORegistryEntrySearchCFProperty(device
 		, kIOServicePlane
 		, CFSTR("USB Vendor Name")
@@ -456,7 +429,7 @@ void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCa
 	deinit_notifier();
 }
 
-void scanUsbMassStorage(const char* syspath, MessageCallback message)
+void GetMacMountPoint(const char* syspath, MessageCallback message)
 {
 	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
 
@@ -480,38 +453,42 @@ void scanUsbMassStorage(const char* syspath, MessageCallback message)
 
 	char* cVal;
 	int found = 0;
+	io_name_t devicepath;
 
 	// iterate through USB mass storage devices
 	for (usbInterface = IOIteratorNext(foundIterator); usbInterface; usbInterface = IOIteratorNext(foundIterator))
 	{
-		CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(usbInterface,
-			kIOServicePlane,
-			CFSTR("BSD Name"),
-			kCFAllocatorDefault,
-			kIORegistryIterateRecursively);
-
-		if (bsdName)
+		if (IORegistryEntryGetPath(usbInterface, kIOServicePlane, devicepath) == KERN_SUCCESS)
 		{
-			cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
-			if (cVal)
+			if (strcmp(devicepath, syspath) == 0)
 			{
-				if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
-				{
-					if (strcmp(cVal, syspath) == 0)
-					{
-						char* mountPath = getMountPathByBSDName(cVal);
+				CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(usbInterface,
+					kIOServicePlane,
+					CFSTR("BSD Name"),
+					kCFAllocatorDefault,
+					kIORegistryIterateRecursively);
 
-						if (mountPath)
+				if (bsdName)
+				{
+					cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
+					if (cVal)
+					{
+						if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
 						{
-							found = 1;
-							message(mountPath);
+							char* mountPath = getMountPathByBSDName(cVal);
+
+							if (mountPath)
+							{
+								found = 1;
+								message(mountPath);
+							}
+
+							break;
 						}
 
-						break;
+						free(cVal);
 					}
 				}
-
-				free(cVal);
 			}
 		}
 	}

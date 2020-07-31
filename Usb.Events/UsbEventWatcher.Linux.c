@@ -289,7 +289,7 @@ extern "C" {
         udev_unref(g_udev);
     }
 
-    void GetMountPoint(const char* syspath, MessageCallback message)
+    void GetLinuxMountPoint(const char* syspath, MessageCallback message)
     {
         int found = 0;
 
