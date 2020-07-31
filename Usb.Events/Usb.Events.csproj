@@ -34,7 +34,7 @@
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
     <Exec Condition="'$(IsMacOS)' == 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared -framework CoreFoundation -framework IOKit UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib" />
+          Command="gcc -shared -framework CoreFoundation -framework DiskArbitration -framework IOKit UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib" />
     <Exec Condition="'$(IsMacOS)' != 'true'"
           WorkingDirectory=".\"
           Command="gcc -shared UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />

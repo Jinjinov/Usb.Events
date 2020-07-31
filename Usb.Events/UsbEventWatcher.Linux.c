@@ -27,9 +27,9 @@ WatcherCallback RemovedCallback;
 typedef void (*MessageCallback)(const char* message);
 MessageCallback Message;
 
-struct udev* g_udev;
-
 //char buffer[4096];
+
+struct udev* g_udev;
 
 struct udev_device* GetChild(struct udev* udev, struct udev_device* parent, const char* subsystem, const char* devtype)
 {

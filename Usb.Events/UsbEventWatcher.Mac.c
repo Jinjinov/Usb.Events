@@ -5,6 +5,9 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/usb/IOUSBLib.h>
 
+#include <DiskArbitration/DiskArbitration.h>
+#include <DiskArbitration/DASession.h>
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +35,8 @@ WatcherCallback RemovedCallback;
 
 typedef void (*MessageCallback)(const char* message);
 MessageCallback Message;
+
+char buffer[1024];
 
 static IONotificationPortRef notificationPort;
 
@@ -64,70 +69,6 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void scanUsbMassStorage(const char* syspath, MessageCallback message)
-{
-	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
-
-	// now specify class and subclass to iterate only through USB mass storage devices:
-	CFNumberRef cfValue;
-	SInt32 deviceClassNum = kUSBMassStorageInterfaceClass;
-	cfValue = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceClassNum);
-	CFDictionaryAddValue(matchingDictionary, CFSTR(kUSBInterfaceClass), cfValue);
-	CFRelease(cfValue);
-
-	// NOTE: if you will specify only device class and will not specify subclass, it will return an empty iterator, and I don't know how to say that we need any subclass. 
-	// BUT: all the devices I've check had kUSBMassStorageSCSISubClass
-	SInt32 deviceSubClassNum = kUSBMassStorageSCSISubClass;
-	cfValue = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceSubClassNum);
-	CFDictionaryAddValue(matchingDictionary, CFSTR(kUSBInterfaceSubClass), cfValue);
-	CFRelease(cfValue);
-
-	io_iterator_t foundIterator = 0;
-	io_service_t usbInterface;
-	IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &foundIterator);
-
-	char* cVal;
-	int found = 0;
-
-	// iterate through USB mass storage devices
-	for (usbInterface = IOIteratorNext(foundIterator); usbInterface; usbInterface = IOIteratorNext(foundIterator))
-	{
-		CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(usbInterface,
-			kIOServicePlane,
-			CFSTR(kIOBSDNameKey),
-			kCFAllocatorDefault,
-			kIORegistryIterateRecursively);
-
-		if (bsdName)
-		{
-			cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
-			if (cVal)
-			{
-				if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
-				{
-					if (strcmp(cVal, syspath) == 0)
-					{
-						char* mountPath = getMountPathByBSDName(cVal);
-
-						if (mountPath)
-						{
-							found = 1;
-							message(mountPath);
-						}
-
-						break;
-					}
-				}
-
-				free(cVal);
-			}
-		}
-	}
-
-	if (!found)
-		message("");
-}
-
 char* getMountPathByBSDName(char* bsdName)
 {
 	DASessionRef session = DASessionCreate(kCFAllocatorDefault);
@@ -136,7 +77,6 @@ char* getMountPathByBSDName(char* bsdName)
 		return NULL;
 	}
 
-	char buf[1024];
 	char* cVal;
 	int found = 0;
 
@@ -154,7 +94,7 @@ char* getMountPathByBSDName(char* bsdName)
 		{
 			CFStringRef bsdNameChild = (CFStringRef)IORegistryEntrySearchCFProperty(child,
 				kIOServicePlane,
-				CFSTR(kIOBSDNameKey),
+				CFSTR("BSD Name"),
 				kCFAllocatorDefault,
 				kIORegistryIterateRecursively);
 
@@ -175,7 +115,7 @@ char* getMountPathByBSDName(char* bsdName)
 							if (diskInfo)
 							{
 								CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
-								if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buf, 1024))
+								if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
 								{
 									// for now, return the first found partition
 
@@ -184,7 +124,7 @@ char* getMountPathByBSDName(char* bsdName)
 									CFRelease(session);
 									free(cVal);
 
-									return buf;
+									return buffer;
 								}
 
 								CFRelease(diskInfo);
@@ -205,7 +145,7 @@ char* getMountPathByBSDName(char* bsdName)
 	The device could get name 'disk1s1, or just 'disk1'.
 	In first case, the original bsd name would be 'disk1', and the child bsd name would be 'disk1s1'.
 	In second case, there would be no child bsd names, but the original one is valid for further work (obtaining various properties).
-	/**/
+	*/
 
 	if (!found)
 	{
@@ -217,7 +157,7 @@ char* getMountPathByBSDName(char* bsdName)
 			if (diskInfo)
 			{
 				CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
-				if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buf, 1024))
+				if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
 				{
 					// for now, return the first found partition
 
@@ -225,7 +165,7 @@ char* getMountPathByBSDName(char* bsdName)
 					CFRelease(disk);
 					CFRelease(session);
 
-					return buf;
+					return buffer;
 				}
 
 				CFRelease(diskInfo);
@@ -277,7 +217,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 
 	CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(device,
 		kIOServicePlane,
-		CFSTR(kIOBSDNameKey),
+		CFSTR("BSD Name"),
 		kCFAllocatorDefault,
 		kIORegistryIterateRecursively);
 
@@ -514,6 +454,70 @@ void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCa
 	init_notifier();
 	configure_and_start_notifier();
 	deinit_notifier();
+}
+
+void scanUsbMassStorage(const char* syspath, MessageCallback message)
+{
+	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
+
+	// now specify class and subclass to iterate only through USB mass storage devices:
+	CFNumberRef cfValue;
+	SInt32 deviceClassNum = kUSBMassStorageInterfaceClass;
+	cfValue = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceClassNum);
+	CFDictionaryAddValue(matchingDictionary, CFSTR(kUSBInterfaceClass), cfValue);
+	CFRelease(cfValue);
+
+	// NOTE: if you will specify only device class and will not specify subclass, it will return an empty iterator, and I don't know how to say that we need any subclass. 
+	// BUT: all the devices I've check had kUSBMassStorageSCSISubClass
+	SInt32 deviceSubClassNum = kUSBMassStorageSCSISubClass;
+	cfValue = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceSubClassNum);
+	CFDictionaryAddValue(matchingDictionary, CFSTR(kUSBInterfaceSubClass), cfValue);
+	CFRelease(cfValue);
+
+	io_iterator_t foundIterator = 0;
+	io_service_t usbInterface;
+	IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &foundIterator);
+
+	char* cVal;
+	int found = 0;
+
+	// iterate through USB mass storage devices
+	for (usbInterface = IOIteratorNext(foundIterator); usbInterface; usbInterface = IOIteratorNext(foundIterator))
+	{
+		CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(usbInterface,
+			kIOServicePlane,
+			CFSTR("BSD Name"),
+			kCFAllocatorDefault,
+			kIORegistryIterateRecursively);
+
+		if (bsdName)
+		{
+			cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
+			if (cVal)
+			{
+				if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
+				{
+					if (strcmp(cVal, syspath) == 0)
+					{
+						char* mountPath = getMountPathByBSDName(cVal);
+
+						if (mountPath)
+						{
+							found = 1;
+							message(mountPath);
+						}
+
+						break;
+					}
+				}
+
+				free(cVal);
+			}
+		}
+	}
+
+	if (!found)
+		message("");
 }
 
 #ifdef __cplusplus
