@@ -470,7 +470,7 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 	{
 		if (IORegistryEntryGetPath(usbInterface, kIOServicePlane, devicepath) == KERN_SUCCESS)
 		{
-			if (strcmp(devicepath, syspath) == 0)
+			if (strncmp(devicepath, syspath, strlen(syspath)) == 0)
 			{
 				CFStringRef bsdName = (CFStringRef)IORegistryEntrySearchCFProperty(usbInterface,
 					kIOServicePlane,
