@@ -48,8 +48,7 @@ namespace Usb.Events
             {
                 StartWindowsWatcher();
             }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback, Message));
 
@@ -66,8 +65,7 @@ namespace Usb.Events
                     }
                 }, _cancellationTokenSource.Token);
             }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, Message));
 
@@ -127,7 +125,19 @@ namespace Usb.Events
         private void OnDeviceRemoved(UsbDevice usbDevice)
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
-            UsbDeviceList.RemoveAll(device => device.DeviceSystemPath == usbDevice.DeviceSystemPath);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                UsbDeviceList.RemoveAll(device => device.DeviceName == usbDevice.DeviceName && device.DeviceSystemPath == usbDevice.DeviceSystemPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                UsbDeviceList.RemoveAll(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                UsbDeviceList.RemoveAll(device => device.SerialNumber == usbDevice.SerialNumber);
+            }
         }
 
         #endregion
