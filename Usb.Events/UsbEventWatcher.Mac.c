@@ -124,6 +124,11 @@ char* getMountPathByBSDName(char* bsdName)
 									CFRelease(session);
 									free(cVal);
 
+									IOObjectRelease(child);
+									IOObjectRelease(children);
+									IOObjectRelease(service);
+									IOObjectRelease(it);
+
 									return buffer;
 								}
 
@@ -138,8 +143,13 @@ char* getMountPathByBSDName(char* bsdName)
 					free(cVal);
 				}
 			}
+			IOObjectRelease(child);
 		}
+		IOObjectRelease(children);
+
+		IOObjectRelease(service);
 	}
+	IOObjectRelease(it);
 
 	/*
 	The device could get name 'disk1s1, or just 'disk1'.
@@ -456,7 +466,7 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 	io_name_t devicepath;
 
 	// iterate through USB mass storage devices
-	for (usbInterface = IOIteratorNext(foundIterator); usbInterface; usbInterface = IOIteratorNext(foundIterator))
+	while ((usbInterface = IOIteratorNext(foundIterator))
 	{
 		if (IORegistryEntryGetPath(usbInterface, kIOServicePlane, devicepath) == KERN_SUCCESS)
 		{
@@ -491,7 +501,9 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 				break;
 			}
 		}
+		IOObjectRelease(usbInterface);
 	}
+	IOObjectRelease(foundIterator);
 
 	if (!found)
 		message("");
