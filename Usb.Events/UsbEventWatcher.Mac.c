@@ -466,7 +466,7 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 	io_name_t devicepath;
 
 	// iterate through USB mass storage devices
-	while ((usbInterface = IOIteratorNext(foundIterator))
+	while ((usbInterface = IOIteratorNext(foundIterator)))
 	{
 		if (IORegistryEntryGetPath(usbInterface, kIOServicePlane, devicepath) == KERN_SUCCESS)
 		{
