@@ -8,10 +8,10 @@ namespace Usb.Events
         List<string> UsbDrivePathList { get; }
         List<UsbDevice> UsbDeviceList { get; }
 
-        event EventHandler<string>? UsbDriveInserted;
-        event EventHandler<string>? UsbDriveRemoved;
+        event EventHandler<string>? UsbDriveMounted;
+        event EventHandler<string>? UsbDriveEjected;
 
-        event EventHandler<UsbDevice>? UsbDeviceInserted;
+        event EventHandler<UsbDevice>? UsbDeviceAdded;
         event EventHandler<UsbDevice>? UsbDeviceRemoved;
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Usb.Events
@@ -15,10 +16,10 @@ namespace Usb.Events
         public List<string> UsbDrivePathList { get; private set; } = new List<string>();
         public List<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
-        public event EventHandler<string>? UsbDriveInserted;
-        public event EventHandler<string>? UsbDriveRemoved;
+        public event EventHandler<string>? UsbDriveMounted;
+        public event EventHandler<string>? UsbDriveEjected;
 
-        public event EventHandler<UsbDevice>? UsbDeviceInserted;
+        public event EventHandler<UsbDevice>? UsbDeviceAdded;
         public event EventHandler<UsbDevice>? UsbDeviceRemoved;
 
         #endregion
@@ -26,14 +27,13 @@ namespace Usb.Events
         #region Windows fields
 
         private ManagementEventWatcher _volumeChangeEventWatcher = null!;
-        /*
-        private ManagementEventWatcher _USBHubCreationEventWatcher = null!;
-        private ManagementEventWatcher _USBHubDeletionEventWatcher = null!;
-        /**/
+
         private ManagementEventWatcher _USBControllerDeviceCreationEventWatcher = null!;
         private ManagementEventWatcher _USBControllerDeviceDeletionEventWatcher = null!;
 
         #endregion
+
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public UsbEventWatcher()
         {
@@ -56,42 +56,66 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, Message));
+
+                Task.Run(async () => 
+                {
+                    while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        foreach (UsbDevice usbDevice in UsbDeviceList)
+                        {
+                            if (!string.IsNullOrEmpty(usbDevice.DeviceSystemPath))
+                            {
+                                GetMountPoint(usbDevice.DeviceSystemPath, mountPoint =>
+                                {
+                                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && !string.IsNullOrEmpty(mountPoint))
+                                    {
+                                        usbDevice.MountedDirectoryPath = mountPoint;
+                                        OnDriveInserted(usbDevice.MountedDirectoryPath);
+
+                                        usbDevice.IsEjected = false;
+                                        usbDevice.IsMounted = true;
+                                    }
+                                    else if (!string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && string.IsNullOrEmpty(mountPoint))
+                                    {
+                                        OnDriveRemoved(usbDevice.MountedDirectoryPath);
+                                        usbDevice.MountedDirectoryPath = mountPoint;
+
+                                        usbDevice.IsEjected = true;
+                                        usbDevice.IsMounted = false;
+                                    }
+                                });
+                            }
+                        }
+
+                        await Task.Delay(100);
+                    }
+                }, _cancellationTokenSource.Token);
             }
         }
 
         private void OnDriveInserted(string path)
         {
-            UsbDriveInserted?.Invoke(this, path);
+            UsbDriveMounted?.Invoke(this, path);
             UsbDrivePathList.Add(path);
         }
 
         private void OnDriveRemoved(string path)
         {
-            UsbDriveRemoved?.Invoke(this, path);
-
-            if (UsbDrivePathList.Contains(path))
-                UsbDrivePathList.Remove(path);
+            UsbDriveEjected?.Invoke(this, path);
+            UsbDrivePathList.RemoveAll(p => p == path);
         }
 
         private void OnDeviceInserted(UsbDevice usbDevice)
         {
-            UsbDeviceInserted?.Invoke(this, usbDevice);
+            UsbDeviceAdded?.Invoke(this, usbDevice);
             UsbDeviceList.Add(usbDevice);
         }
 
         private void OnDeviceRemoved(UsbDevice usbDevice)
         {
             UsbDeviceRemoved?.Invoke(this, usbDevice);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) // Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                UsbDeviceList.RemoveAll(device => device.DeviceName == usbDevice.DeviceName && device.DevicePath == usbDevice.DevicePath);
-            }
-            else
-            {
-                UsbDeviceList.RemoveAll(device => device.ProductID == usbDevice.ProductID && device.VendorID == usbDevice.VendorID && device.SerialNumber == usbDevice.SerialNumber);
-            }
+            UsbDeviceList.RemoveAll(device => device.DeviceSystemPath == usbDevice.DeviceSystemPath);
         }
 
         #endregion
@@ -99,22 +123,34 @@ namespace Usb.Events
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void WatcherCallback(UsbDevice usbDevice);
+        delegate void WatcherCallback(UsbDeviceData usbDevice);
 
-        private void InsertedCallback(UsbDevice usbDevice)
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        delegate void MessageCallback(string message);
+
+        private void InsertedCallback(UsbDeviceData usbDevice)
         {
-            OnDriveInserted(usbDevice.DevicePath);
-            OnDeviceInserted(usbDevice);
+            //OnDriveInserted(usbDevice.DevicePath);
+            OnDeviceInserted(new UsbDevice(usbDevice));
         }
 
-        private void RemovedCallback(UsbDevice usbDevice)
+        private void RemovedCallback(UsbDeviceData usbDevice)
         {
-            OnDriveRemoved(usbDevice.DevicePath);
-            OnDeviceRemoved(usbDevice);
+            //OnDriveRemoved(usbDevice.DevicePath);
+            OnDeviceRemoved(new UsbDevice(usbDevice));
+        }
+
+        private readonly List<string> _messageList = new List<string>();
+        private void Message(string message)
+        {
+            _messageList.Add(message);
         }
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
+        static extern void GetMountPoint(string syspath, MessageCallback message);
+
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback);
@@ -127,23 +163,13 @@ namespace Usb.Events
         {
             UsbDrivePathList = new List<string>(DriveInfo.GetDrives()
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
-                .Select(driveInfo => driveInfo.Name.EndsWith(Path.DirectorySeparatorChar.ToString()) ? driveInfo.Name : driveInfo.Name + Path.DirectorySeparatorChar));
+                .Select(driveInfo => driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)));
 
             _volumeChangeEventWatcher = new ManagementEventWatcher();
             _volumeChangeEventWatcher.EventArrived += new EventArrivedEventHandler(VolumeChangeEventWatcher_EventArrived);
             _volumeChangeEventWatcher.Query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2 or EventType = 3");
             _volumeChangeEventWatcher.Start();
-            /*
-            _USBHubCreationEventWatcher = new ManagementEventWatcher();
-            _USBHubCreationEventWatcher.EventArrived += new EventArrivedEventHandler(USBHubCreationEventWatcher_EventArrived);
-            _USBHubCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
-            _USBHubCreationEventWatcher.Start();
 
-            _USBHubDeletionEventWatcher = new ManagementEventWatcher();
-            _USBHubDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(USBHubDeletionEventWatcher_EventArrived);
-            _USBHubDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
-            _USBHubDeletionEventWatcher.Start();
-            /**/
             _USBControllerDeviceCreationEventWatcher = new ManagementEventWatcher();
             _USBControllerDeviceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceCreationEventWatcher_EventArrived);
             _USBControllerDeviceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'");
@@ -160,10 +186,6 @@ namespace Usb.Events
             ManagementBaseObject Win32_VolumeChangeEvent = e.NewEvent;
 
             string driveName = Win32_VolumeChangeEvent["DriveName"].ToString();
-
-            if (!driveName.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                driveName += Path.DirectorySeparatorChar;
-
             string eventType = Win32_VolumeChangeEvent["EventType"].ToString();
 
             bool inserted = eventType == "2";
@@ -171,11 +193,23 @@ namespace Usb.Events
 
             if (inserted)
             {
+                foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => device.MountedDirectoryPath == driveName))
+                {
+                    usbDevice.IsEjected = false;
+                    usbDevice.IsMounted = true;
+                }
+
                 OnDriveInserted(driveName);
             }
 
             if (removed)
             {
+                foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => device.MountedDirectoryPath == driveName))
+                {
+                    usbDevice.IsEjected = true;
+                    usbDevice.IsMounted = false;
+                }
+
                 OnDriveRemoved(driveName);
             }
         }
@@ -193,38 +227,7 @@ namespace Usb.Events
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
         }
-        /*
-        private void USBHubCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
-        {
-            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            string deviceID = GetUSBHubID(Win32_USBHub);
-
-            UsbDevice? usbDevice = GetUsbDevice(deviceID);
-
-            if (usbDevice != null)
-                OnDeviceInserted(usbDevice.Value);
-        }
-
-        private void USBHubDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
-        {
-            ManagementBaseObject Win32_USBHub = (ManagementBaseObject)e.NewEvent["TargetInstance"];
-
-            string deviceID = GetUSBHubID(Win32_USBHub);
-
-            UsbDevice? usbDevice = GetUsbDevice(deviceID);
-
-            if (usbDevice != null)
-                OnDeviceRemoved(usbDevice.Value);
-        }
-
-        private static string GetUSBHubID(ManagementBaseObject Win32_USBHub)
-        {
-            DebugOutput(Win32_USBHub);
-
-            return Win32_USBHub["DeviceID"].ToString();
-        }
-        /**/
         private void USBControllerDeviceCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
@@ -234,7 +237,12 @@ namespace Usb.Events
             UsbDevice? usbDevice = GetUsbDevice(deviceID);
 
             if (usbDevice != null)
-                OnDeviceInserted(usbDevice.Value);
+            {
+                usbDevice.IsEjected = false;
+                usbDevice.IsMounted = true;
+
+                OnDeviceInserted(usbDevice);
+            }
         }
 
         private void USBControllerDeviceDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -246,7 +254,12 @@ namespace Usb.Events
             UsbDevice? usbDevice = GetUsbDevice(deviceID);
 
             if (usbDevice != null)
-                OnDeviceRemoved(usbDevice.Value);
+            {
+                usbDevice.IsEjected = true;
+                usbDevice.IsMounted = false;
+
+                OnDeviceRemoved(usbDevice);
+            }
         }
 
         private static string GetUSBControllerDeviceID(ManagementBaseObject Win32_USBControllerDevice)
@@ -288,6 +301,7 @@ namespace Usb.Events
 
             UsbDevice usbDevice = new UsbDevice
             {
+                DeviceSystemPath = deviceID,
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
@@ -329,9 +343,9 @@ namespace Usb.Events
 
                 while (++attempts < 9000)
                 {
-                    usbDevice.DevicePath = GetDevicePath(serial);
+                    usbDevice.MountedDirectoryPath = GetDevicePath(serial);
 
-                    if (string.IsNullOrEmpty(usbDevice.DevicePath))
+                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath))
                     {
                         System.Threading.Thread.Sleep(1);
                     }
@@ -400,15 +414,12 @@ namespace Usb.Events
 
         public void Dispose()
         {
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+
             _volumeChangeEventWatcher.Stop();
             _volumeChangeEventWatcher.Dispose();
-            /*
-            _USBHubCreationEventWatcher.Stop();
-            _USBHubCreationEventWatcher.Dispose();
 
-            _USBHubDeletionEventWatcher.Stop();
-            _USBHubDeletionEventWatcher.Dispose();
-            /**/
             _USBControllerDeviceCreationEventWatcher.Stop();
             _USBControllerDeviceCreationEventWatcher.Dispose();
 

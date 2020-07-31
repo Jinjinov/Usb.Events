@@ -11,7 +11,7 @@
     <Product>Usb.Events</Product>
     <Version>1.0.1.1</Version>
     <Authors>Jinjinov</Authors>
-    <Description>Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
+    <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <PackageTags>USB;Event;Insert;Remove;NET Standard;Windows;Linux;macOS</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Jinjinov/Usb.Events</PackageProjectUrl>
@@ -20,7 +20,6 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <NativeOutputDir>.\x64\$(Configuration)\</NativeOutputDir>
     <IsMacOS>$([MSBuild]::IsOsPlatform('OSX'))</IsMacOS>
     <NativeAssetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'" >win-x64</NativeAssetRuntimeIdentifier>
     <NativeAssetRuntimeIdentifier Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'" >linux-x64</NativeAssetRuntimeIdentifier>
@@ -32,22 +31,21 @@
   </ItemGroup>
 
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
-    <MakeDir Directories=".\x64\$(Configuration)" />
     <Exec Condition="'$(IsMacOS)' == 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared -framework CoreFoundation -framework IOKit UsbEventWatcher.Mac.c -o x64/$(Configuration)/UsbEventWatcher.Mac.dylib" />
+          Command="gcc -shared -framework CoreFoundation -framework IOKit UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib" />
     <Exec Condition="'$(IsMacOS)' != 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared UsbEventWatcher.Linux.c -o x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc -shared UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
-    <None Include="$(NativeOutputDir)UsbEventWatcher.Linux.so" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Linux.so')">
+    <None Include="UsbEventWatcher.Linux.so" Condition="Exists('UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes/linux-x64/native</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(NativeOutputDir)UsbEventWatcher.Mac.dylib" Condition="Exists('$(NativeOutputDir)UsbEventWatcher.Mac.dylib')">
+    <None Include="UsbEventWatcher.Mac.dylib" Condition="Exists('UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes/osx-x64/native</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

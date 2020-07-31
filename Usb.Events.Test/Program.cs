@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Usb.Events.Test
 {
@@ -8,13 +9,21 @@ namespace Usb.Events.Test
 
         static void Main(string[] _)
         {
-            usbEventWatcher.UsbDriveInserted += (_, path) => Console.WriteLine("Inserted:" + Environment.NewLine + path + Environment.NewLine);
-
-            usbEventWatcher.UsbDriveRemoved += (_, path) => Console.WriteLine("Removed:" + Environment.NewLine + path + Environment.NewLine);
-
-            usbEventWatcher.UsbDeviceInserted += (_, device) => Console.WriteLine("Inserted:" + Environment.NewLine + device + Environment.NewLine);
-
             usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
+
+            usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
+
+            usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
+
+            usbEventWatcher.UsbDriveMounted += (_, path) =>
+            {
+                Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+
+                foreach (string entry in Directory.GetFileSystemEntries(path))
+                    Console.WriteLine(entry);
+
+                Console.WriteLine();
+            };
 
             Console.ReadLine();
         }
