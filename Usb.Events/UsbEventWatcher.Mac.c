@@ -482,13 +482,13 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 								found = 1;
 								message(mountPath);
 							}
-
-							break;
 						}
 
 						free(cVal);
 					}
 				}
+
+				break;
 			}
 		}
 	}
