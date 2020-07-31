@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// https://stackoverflow.com/questions/45173124/osx-usb-mass-storage-discovery
-
 typedef struct UsbDeviceData
 {
     char DeviceName[255];
@@ -31,6 +29,9 @@ static const struct UsbDeviceData empty;
 typedef void (*WatcherCallback)(UsbDeviceData usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
+
+typedef void (*MessageCallback)(const char* message);
+MessageCallback Message;
 
 static IONotificationPortRef notificationPort;
 
@@ -63,7 +64,7 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void scanUsbMassStorage()
+void scanUsbMassStorage(const char* syspath, MessageCallback message)
 {
 	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
 
@@ -104,14 +105,14 @@ void scanUsbMassStorage()
 			{
 				if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
 				{
-					if (strcmp(cVal, DeviceSystemPath) == 0)
+					if (strcmp(cVal, syspath) == 0)
 					{
 						char* mountPath = getMountPathByBSDName(cVal);
 
 						if (mountPath)
 						{
 							found = 1;
-							Message(mountPath);
+							message(mountPath);
 						}
 
 						break;
@@ -503,10 +504,11 @@ void init_signal_handler()
 extern "C" {
 #endif
 
-void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback)
+void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback message)
 {
 	InsertedCallback = insertedCallback;
 	RemovedCallback = removedCallback;
+	Message = message;
 
 	//init_signal_handler();
 	init_notifier();
