@@ -40,6 +40,7 @@ How to use:
 Version history:
 
 - 1.1.0.0: Added MountedDirectoryPath, IsMounted, IsEjected. Breaking changes:
+    - DevicePath renamed to DeviceSystemPath
     - UsbDriveInserted renamed to UsbDriveMounted
     - UsbDriveRemoved renamed to UsbDriveEjected
     - UsbDeviceInserted renamed to UsbDeviceAdded

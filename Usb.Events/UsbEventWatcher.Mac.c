@@ -9,10 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct UsbDevice
+// https://stackoverflow.com/questions/45173124/osx-usb-mass-storage-discovery
+
+typedef struct UsbDeviceData
 {
     char DeviceName[255];
-    char DevicePath[255];
+    char DeviceSystemPath[255];
     char Product[255];
     char ProductDescription[255];
     char ProductID[255];
@@ -20,13 +22,13 @@ typedef struct UsbDevice
     char Vendor[255];
     char VendorDescription[255];
     char VendorID[255];
-} UsbDevice;
+} UsbDeviceData;
 
-UsbDevice usbDevice;
+UsbDeviceData usbDevice;
 
-static const struct UsbDevice empty;
+static const struct UsbDeviceData empty;
 
-typedef void (*WatcherCallback)(UsbDevice usbDevice);
+typedef void (*WatcherCallback)(UsbDeviceData usbDevice);
 WatcherCallback InsertedCallback;
 WatcherCallback RemovedCallback;
 
@@ -62,7 +64,7 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 void get_usb_device_info(io_service_t device, int newdev)
 {
 	io_name_t devicename;
-	io_name_t entrypath;
+	io_name_t devicepath;
 	io_name_t classname;
 
 	char* cVal;
@@ -70,7 +72,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 
 	if (IORegistryEntryGetName(device, devicename) != KERN_SUCCESS)
 	{
-		fprintf(stderr, "%s unknown device (unable to get device name)\n", newdev ? "Added " : " Removed");
+		fprintf(stderr, "%s unknown device\n", newdev ? "added" : " removed");
 		return;
 	}
 
@@ -80,11 +82,11 @@ void get_usb_device_info(io_service_t device, int newdev)
 
 	strcpy(usbDevice.DeviceName, devicename);
 
-	if (IORegistryEntryGetPath(device, kIOServicePlane, entrypath) == KERN_SUCCESS)
+	if (IORegistryEntryGetPath(device, kIOServicePlane, devicepath) == KERN_SUCCESS)
 	{
-		printf("\tDevice entry path: %s\n", entrypath);
+		printf("\tDevice path: %s\n", devicepath);
 
-		strcpy(usbDevice.DevicePath, entrypath);
+		strcpy(usbDevice.DeviceSystemPath, devicepath);
 	}
 
 	if (IOObjectGetClass(device, classname) == KERN_SUCCESS)
@@ -229,12 +231,12 @@ void init_notifier()
 {
 	notificationPort = IONotificationPortCreate(kIOMasterPortDefault);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
-	printf("init_notifier ---> Ok\n");
+	printf("init_notifier ok\n");
 }
 
 void configure_and_start_notifier()
 {
-	printf("Starting notifier...\n\n");
+	printf("Starting notifier\n");
 	CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
 
 	if (!matchDict)
@@ -274,7 +276,7 @@ void deinit_notifier()
 {
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	IONotificationPortDestroy(notificationPort);
-	printf("deinit_notifier ---> Ok\n");
+	printf("deinit_notifier ok\n");
 }
 
 void signal_handler(int signum)
