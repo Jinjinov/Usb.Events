@@ -61,7 +61,7 @@ namespace Usb.Events
                             GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
-                        await Task.Delay(100);
+                        await Task.Delay(1000);
                     }
                 }, _cancellationTokenSource.Token);
             }
