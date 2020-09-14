@@ -39,12 +39,23 @@ How to use:
 
 Version history:
 
-- 1.1.0.0: Added MountedDirectoryPath, IsMounted, IsEjected. Breaking changes:
-    - DevicePath renamed to DeviceSystemPath
-    - UsbDriveInserted renamed to UsbDriveMounted
-    - UsbDriveRemoved renamed to UsbDriveEjected
-    - UsbDeviceInserted renamed to UsbDeviceAdded
-- 1.0.1.1: Bug fix
-- 1.0.1.0: Events for all USB devices
-- 1.0.0.1: Bug fix
-- 1.0.0.0: Events for USB drives and USB storage devices
+- 1.1.0.1:
+    - Bug fix
+- 1.1.0.0:
+    - Added:
+        - MountedDirectoryPath
+        - IsMounted
+        - IsEjected
+    - Breaking changes:
+        - DevicePath renamed to DeviceSystemPath
+        - UsbDriveInserted renamed to UsbDriveMounted
+        - UsbDriveRemoved renamed to UsbDriveEjected
+        - UsbDeviceInserted renamed to UsbDeviceAdded
+- 1.0.1.1:
+    - Bug fix
+- 1.0.1.0:
+    - Events for all USB devices
+- 1.0.0.1:
+    - Bug fix
+- 1.0.0.0:
+    - Events for USB drives and USB storage devices
