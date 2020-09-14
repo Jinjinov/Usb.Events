@@ -12,7 +12,7 @@
     <Version>1.1.0.0</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
-    <PackageReleaseNotes>Breaking changes: DevicePath renamed to DeviceSystemPath, UsbDriveInserted renamed to UsbDriveMounted, UsbDriveRemoved renamed to UsbDriveEjected, UsbDeviceInserted renamed to UsbDeviceAdded</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>USB;Event;Insert;Remove;NET Standard;Windows;Linux;macOS</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Jinjinov/Usb.Events</PackageProjectUrl>
