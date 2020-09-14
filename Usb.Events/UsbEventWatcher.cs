@@ -145,10 +145,10 @@ namespace Usb.Events
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void WatcherCallback(UsbDeviceData usbDevice);
+        delegate void WatcherCallback(UsbDeviceData usbDevice); // TODO:: rename to UsbDeviceCallback
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void MessageCallback(string message);
+        delegate void MessageCallback(string message); // TODO:: rename to MountPointCallback
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
@@ -160,6 +160,7 @@ namespace Usb.Events
             OnDeviceRemoved(new UsbDevice(usbDevice));
         }
 
+        // TODO:: remove
         private readonly List<string> _messageList = new List<string>();
         private void Message(string message)
         {
@@ -170,13 +171,13 @@ namespace Usb.Events
         static extern void GetLinuxMountPoint(string syspath, MessageCallback message);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
+        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback); // TODO:: remove MessageCallback
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void GetMacMountPoint(string syspath, MessageCallback message);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback);
+        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback); // TODO:: remove MessageCallback
 
         #endregion
 
@@ -377,8 +378,6 @@ namespace Usb.Events
                         break;
                     }
                 }
-
-                //System.Diagnostics.Debug.WriteLine("attempts " + attempts);
             }
 
             return usbDevice;
@@ -410,30 +409,6 @@ namespace Usb.Events
 
             return devicePath;
         }
-
-        /*
-        ClassGuid = {71a27cdd-812a-11d0-bec7-08002be2092f}
-        DeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-        PNPDeviceID = STORAGE\VOLUME\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-
-        ClassGuid = {eec5ad98-8080-425f-922a-dabf3de3f69a}
-        Caption = IRM_CCSA_X64FRE_EN-US_DV5
-        Description = DT 101 II
-        Manufacturer = Kingston
-        Name = IRM_CCSA_X64FRE_EN-US_DV5
-        DeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-        PNPDeviceID = SWD\WPDBUSENUM\_??_USBSTOR#DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00#0019E06B9C85F9A0F7550C20&0#{53F56307-B6BF-11D0-94F2-00A0C91EFB8B}
-
-        ClassGuid = {36fc9e60-c465-11cf-8056-444553540000}
-        DeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
-        PNPDeviceID = USB\VID_0951&PID_1625\0019E06B9C85F9A0F7550C20
-
-        ClassGuid = {4d36e967-e325-11ce-bfc1-08002be10318}
-        Caption = Kingston DT 101 II USB Device
-        Name = Kingston DT 101 II USB Device
-        DeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
-        PNPDeviceID = USBSTOR\DISK&VEN_KINGSTON&PROD_DT_101_II&REV_1.00\0019E06B9C85F9A0F7550C20&0
-        /**/
 
         public void Dispose()
         {
