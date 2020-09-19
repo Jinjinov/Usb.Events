@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.1.0.0" />
+        <PackageReference Include="Usb.Events" Version="1.1.0.1" />
         
 2. Subscribe to events:
 
@@ -37,20 +37,25 @@ How to use:
             }
         }
 
+TO DO:
+
+- [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
+- [ ] Automatically mount USB drive on `UsbDeviceAdded` event in macOS
+
 Version history:
 
 - 1.1.0.1:
     - Bug fix
 - 1.1.0.0:
     - Added:
-        - MountedDirectoryPath
-        - IsMounted
-        - IsEjected
+        - `MountedDirectoryPath`
+        - `IsMounted`
+        - `IsEjected`
     - Breaking changes:
-        - DevicePath renamed to DeviceSystemPath
-        - UsbDriveInserted renamed to UsbDriveMounted
-        - UsbDriveRemoved renamed to UsbDriveEjected
-        - UsbDeviceInserted renamed to UsbDeviceAdded
+        - `DevicePath` renamed to `DeviceSystemPath`
+        - `UsbDriveInserted` renamed to `UsbDriveMounted`
+        - `UsbDriveRemoved` renamed to `UsbDriveEjected`
+        - `UsbDeviceInserted` renamed to `UsbDeviceAdded`
 - 1.0.1.1:
     - Bug fix
 - 1.0.1.0:
