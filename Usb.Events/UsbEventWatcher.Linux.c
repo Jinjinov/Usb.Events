@@ -20,12 +20,11 @@ UsbDeviceData usbDevice;
 
 static const struct UsbDeviceData empty;
 
-typedef void (*WatcherCallback)(UsbDeviceData usbDevice);
-WatcherCallback InsertedCallback;
-WatcherCallback RemovedCallback;
+typedef void (*UsbDeviceCallback)(UsbDeviceData usbDevice);
+UsbDeviceCallback InsertedCallback;
+UsbDeviceCallback RemovedCallback;
 
-typedef void (*MessageCallback)(const char* message);
-MessageCallback Message;
+typedef void (*MountPointCallback)(const char* mountPoint);
 
 //char buffer[4096];
 
@@ -269,11 +268,10 @@ void MonitorDevices(struct udev* udev)
 extern "C" {
 #endif
 
-    void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback message)
+    void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback)
     {
         InsertedCallback = insertedCallback;
         RemovedCallback = removedCallback;
-        Message = message;
 
         g_udev = udev_new();
 
@@ -289,7 +287,7 @@ extern "C" {
         udev_unref(g_udev);
     }
 
-    void GetLinuxMountPoint(const char* syspath, MessageCallback message)
+    void GetLinuxMountPoint(const char* syspath, MountPointCallback mountPointCallback)
     {
         int found = 0;
 
@@ -308,7 +306,7 @@ extern "C" {
                     if (mount_point)
                     {
                         found = 1;
-                        message(mount_point);
+                        mountPointCallback(mount_point);
                     }
                 }
 
@@ -319,7 +317,7 @@ extern "C" {
         }
 
         if (!found)
-            message("");
+            mountPointCallback("");
     }
 
 #ifdef __cplusplus

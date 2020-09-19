@@ -29,12 +29,11 @@ UsbDeviceData usbDevice;
 
 static const struct UsbDeviceData empty;
 
-typedef void (*WatcherCallback)(UsbDeviceData usbDevice);
-WatcherCallback InsertedCallback;
-WatcherCallback RemovedCallback;
+typedef void (*UsbDeviceCallback)(UsbDeviceData usbDevice);
+UsbDeviceCallback InsertedCallback;
+UsbDeviceCallback RemovedCallback;
 
-typedef void (*MessageCallback)(const char* message);
-MessageCallback Message;
+typedef void (*MountPointCallback)(const char* mountPoint);
 
 char buffer[1024];
 
@@ -427,11 +426,10 @@ void init_signal_handler()
 extern "C" {
 #endif
 
-void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback message)
+void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback)
 {
 	InsertedCallback = insertedCallback;
 	RemovedCallback = removedCallback;
-	Message = message;
 
 	//init_signal_handler();
 	init_notifier();
@@ -439,7 +437,7 @@ void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCa
 	deinit_notifier();
 }
 
-void GetMacMountPoint(const char* syspath, MessageCallback message)
+void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback)
 {
 	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
 
@@ -490,7 +488,7 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 							if (mountPath)
 							{
 								found = 1;
-								message(mountPath);
+								mountPointCallback(mountPath);
 							}
 						}
 
@@ -506,7 +504,7 @@ void GetMacMountPoint(const char* syspath, MessageCallback message)
 	IOObjectRelease(foundIterator);
 
 	if (!found)
-		message("");
+		mountPointCallback("");
 }
 
 #ifdef __cplusplus

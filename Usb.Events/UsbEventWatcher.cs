@@ -50,7 +50,7 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback, Message));
+                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
 
                 Task.Run(async () =>
                 {
@@ -67,7 +67,7 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, Message));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
 
                 Task.Run(async () => 
                 {
@@ -145,10 +145,10 @@ namespace Usb.Events
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void WatcherCallback(UsbDeviceData usbDevice); // TODO:: rename to UsbDeviceCallback
+        delegate void UsbDeviceCallback(UsbDeviceData usbDevice);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void MessageCallback(string message); // TODO:: rename to MountPointCallback
+        delegate void MountPointCallback(string mountPoint);
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
@@ -160,24 +160,17 @@ namespace Usb.Events
             OnDeviceRemoved(new UsbDevice(usbDevice));
         }
 
-        // TODO:: remove
-        private readonly List<string> _messageList = new List<string>();
-        private void Message(string message)
-        {
-            _messageList.Add(message);
-        }
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetLinuxMountPoint(string syspath, MessageCallback message);
-
-        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback); // TODO:: remove MessageCallback
+        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetMacMountPoint(string syspath, MessageCallback message);
+        static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher(WatcherCallback insertedCallback, WatcherCallback removedCallback, MessageCallback messageCallback); // TODO:: remove MessageCallback
+        static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
         #endregion
 
