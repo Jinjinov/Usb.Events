@@ -17,12 +17,14 @@ namespace Usb.Events
         public List<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
         public event EventHandler<string>? UsbDriveMounted;
+
         public event EventHandler<string>? UsbDriveEjected;
 
         public event EventHandler<UsbDevice>? UsbDeviceAdded;
+
         public event EventHandler<UsbDevice>? UsbDeviceRemoved;
 
-        #endregion
+        #endregion IUsbEventWatcher
 
         #region Windows fields
 
@@ -31,18 +33,18 @@ namespace Usb.Events
         private ManagementEventWatcher _USBControllerDeviceCreationEventWatcher = null!;
         private ManagementEventWatcher _USBControllerDeviceDeletionEventWatcher = null!;
 
-        #endregion
+        #endregion Windows fields
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public UsbEventWatcher()
+        public UsbEventWatcher(string subsystem = "usb")
         {
-            Start();
+            Start(subsystem);
         }
 
         #region Methods
 
-        private void Start()
+        private void Start(string subsystem)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -67,9 +69,9 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, subsystem));
 
-                Task.Run(async () => 
+                Task.Run(async () =>
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
@@ -78,7 +80,7 @@ namespace Usb.Events
                             GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
-                        await Task.Delay(100);
+                        await Task.Delay(1000);
                     }
                 }, _cancellationTokenSource.Token);
             }
@@ -140,15 +142,15 @@ namespace Usb.Events
             }
         }
 
-        #endregion
+        #endregion Methods
 
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void UsbDeviceCallback(UsbDeviceData usbDevice);
+        private delegate void UsbDeviceCallback(UsbDeviceData usbDevice);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void MountPointCallback(string mountPoint);
+        private delegate void MountPointCallback(string mountPoint);
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
@@ -161,18 +163,18 @@ namespace Usb.Events
         }
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
+        private static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+        private static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, string subsystem);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
+        private static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+        private static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
-        #endregion
+        #endregion Linux and Mac methods
 
         #region Windows methods
 
@@ -418,6 +420,6 @@ namespace Usb.Events
             _USBControllerDeviceDeletionEventWatcher.Dispose();
         }
 
-        #endregion
+        #endregion Windows methods
     }
 }
