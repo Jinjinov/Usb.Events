@@ -35,14 +35,14 @@ namespace Usb.Events
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-		public UsbEventWatcher(string subsystem = "usb")
+        public UsbEventWatcher(string subsystem = "usb")
         {
-			Start(subsystem);
-		}
+            Start(subsystem);
+        }
 
         #region Methods
 
-		private void Start(string subsystem)
+        private void Start(string subsystem)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -67,7 +67,7 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-				Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, subsystem));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, subsystem));
 
                 Task.Run(async () => 
                 {
@@ -78,7 +78,7 @@ namespace Usb.Events
                             GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
-						await Task.Delay(1000);
+                        await Task.Delay(1000);
                     }
                 }, _cancellationTokenSource.Token);
             }
