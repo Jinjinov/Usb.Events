@@ -247,28 +247,32 @@ extern "C" {
         int found = 0;
 
         struct udev_device* dev = udev_device_new_from_syspath(g_udev, syspath);
-
-        struct udev_device* scsi = GetChild(g_udev, dev, "scsi", NULL);
-        if (scsi)
+        if (dev)
         {
-            struct udev_device* block = GetChild(g_udev, scsi, "block", "partition");
-            if (block)
+            struct udev_device* scsi = GetChild(g_udev, dev, "scsi", NULL);
+            if (scsi)
             {
-                const char* block_devnode = udev_device_get_devnode(block);
-                if (block_devnode)
+                struct udev_device* block = GetChild(g_udev, scsi, "block", "partition");
+                if (block)
                 {
-                    char* mount_point = FindMountPoint(block_devnode);
-                    if (mount_point)
+                    const char* block_devnode = udev_device_get_devnode(block);
+                    if (block_devnode)
                     {
-                        found = 1;
-                        mountPointCallback(mount_point);
+                        char* mount_point = FindMountPoint(block_devnode);
+                        if (mount_point)
+                        {
+                            found = 1;
+                            mountPointCallback(mount_point);
+                        }
                     }
+
+                    udev_device_unref(block);
                 }
 
-                udev_device_unref(block);
+                udev_device_unref(scsi);
             }
 
-            udev_device_unref(scsi);
+            udev_device_unref(dev);
         }
 
         if (!found)
