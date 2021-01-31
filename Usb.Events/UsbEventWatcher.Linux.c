@@ -1,3 +1,5 @@
+#include <time.h>
+#include <errno.h>
 #include <libudev.h>
 #include <mntent.h>
 #include <stdio.h>
@@ -180,6 +182,29 @@ void EnumerateDevices(struct udev* udev)
     udev_enumerate_unref(enumerate);
 }
 
+/* msleep(): Sleep for the requested number of milliseconds. */
+int msleep(long msec)
+{
+    struct timespec ts;
+    int res;
+
+    if (msec < 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    do
+    {
+        res = nanosleep(&ts, &ts);
+    } while (res && errno == EINTR);
+
+    return res;
+}
+
 void MonitorDevices(struct udev* udev)
 {
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
@@ -199,7 +224,8 @@ void MonitorDevices(struct udev* udev)
 
         if (ret <= 0)
         {
-            break;
+            msleep(100);
+            continue;
         }
 
         if (FD_ISSET(fd, &fds))
