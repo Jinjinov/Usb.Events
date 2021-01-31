@@ -94,63 +94,55 @@ char* FindMountPoint(const char* dev_node)
 
 void GetDeviceInfo(struct udev* udev, struct udev_device* dev)
 {
-    const char* action = udev_device_get_action(dev);
-    if (! action)
-        action = "exists";
-
-    int added = strcmp(action, "add") == 0;
-
-    int removed = strcmp(action, "remove") == 0;
-
-    if (added || removed)
-    {
-        usbDevice = empty;
+    usbDevice = empty;
         
-        const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
-        if (DeviceName)
-            strcpy(usbDevice.DeviceName, DeviceName);
+    const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
+    if (DeviceName)
+        strcpy(usbDevice.DeviceName, DeviceName);
 
-        const char* DeviceSystemPath = udev_device_get_syspath(dev); //udev_device_get_property_value(dev, "DEVPATH");
-        if (DeviceSystemPath)
-            strcpy(usbDevice.DeviceSystemPath, DeviceSystemPath);
+    const char* DeviceSystemPath = udev_device_get_syspath(dev); //udev_device_get_property_value(dev, "DEVPATH");
+    if (DeviceSystemPath)
+        strcpy(usbDevice.DeviceSystemPath, DeviceSystemPath);
 
-        const char* Product = udev_device_get_property_value(dev, "ID_MODEL");
-        if (Product)
-            strcpy(usbDevice.Product, Product);
+    const char* Product = udev_device_get_property_value(dev, "ID_MODEL");
+    if (Product)
+        strcpy(usbDevice.Product, Product);
 
-        const char* ProductDescription = udev_device_get_property_value(dev, "ID_MODEL_FROM_DATABASE");
-        if (ProductDescription)
-            strcpy(usbDevice.ProductDescription, ProductDescription);
+    const char* ProductDescription = udev_device_get_property_value(dev, "ID_MODEL_FROM_DATABASE");
+    if (ProductDescription)
+        strcpy(usbDevice.ProductDescription, ProductDescription);
 
-        const char* ProductID = udev_device_get_property_value(dev, "ID_MODEL_ID");
-        if (ProductID)
-            strcpy(usbDevice.ProductID, ProductID);
+    const char* ProductID = udev_device_get_property_value(dev, "ID_MODEL_ID");
+    if (ProductID)
+        strcpy(usbDevice.ProductID, ProductID);
 
-        const char* SerialNumber = udev_device_get_property_value(dev, "ID_SERIAL_SHORT");
-        if (SerialNumber)
-            strcpy(usbDevice.SerialNumber, SerialNumber);
+    const char* SerialNumber = udev_device_get_property_value(dev, "ID_SERIAL_SHORT");
+    if (SerialNumber)
+        strcpy(usbDevice.SerialNumber, SerialNumber);
 
-        const char* Vendor = udev_device_get_property_value(dev, "ID_VENDOR");
-        if (Vendor)
-            strcpy(usbDevice.Vendor, Vendor);
+    const char* Vendor = udev_device_get_property_value(dev, "ID_VENDOR");
+    if (Vendor)
+        strcpy(usbDevice.Vendor, Vendor);
 
-        const char* VendorDescription = udev_device_get_property_value(dev, "ID_VENDOR_FROM_DATABASE");
-        if (VendorDescription)
-            strcpy(usbDevice.VendorDescription, VendorDescription);
+    const char* VendorDescription = udev_device_get_property_value(dev, "ID_VENDOR_FROM_DATABASE");
+    if (VendorDescription)
+        strcpy(usbDevice.VendorDescription, VendorDescription);
 
-        const char* VendorID = udev_device_get_property_value(dev, "ID_VENDOR_ID");
-        if (VendorID)
-            strcpy(usbDevice.VendorID, VendorID);
+    const char* VendorID = udev_device_get_property_value(dev, "ID_VENDOR_ID");
+    if (VendorID)
+        strcpy(usbDevice.VendorID, VendorID);
 
-        if (added)
-        {
-            InsertedCallback(usbDevice);
-        }
+    const char* action = udev_device_get_action(dev);
+    
+    // if device already exists "action" is NULL, otherwise it can be "add" or "remove"
 
-        if (removed)
-        {
-            RemovedCallback(usbDevice);
-        }
+    if (action && strcmp(action, "remove") == 0)
+    {
+        RemovedCallback(usbDevice);
+    }
+    else
+    {
+        InsertedCallback(usbDevice);
     }
 }
 
