@@ -1,10 +1,9 @@
 #include <time.h>
-#include <errno.h>  
+#include <errno.h>
 #include <libudev.h>
 #include <mntent.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 typedef struct UsbDeviceData
 {
@@ -40,20 +39,20 @@ struct udev_device* GetChild(struct udev* udev, struct udev_device* parent, cons
     udev_enumerate_add_match_subsystem(enumerate, subsystem);
     udev_enumerate_scan_devices(enumerate);
 
-    for (struct udev_list_entry* entry = udev_enumerate_get_list_entry(enumerate);
-        entry != NULL;
-        entry = udev_list_entry_get_next(entry))
+    struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
+    struct udev_list_entry* entry;
+
+    udev_list_entry_foreach(entry, devices)
     {
         const char* path = udev_list_entry_get_name(entry);
         child = udev_device_new_from_syspath(udev, path);
 
-        if (child)
+        if(!devtype)
+            break;
+
+        if (strcmp(udev_device_get_devtype(child), devtype) == 0)
         {
-            if ((!devtype)
-                || (strcmp(udev_device_get_devtype(child), devtype) == 0))
-            {
-                break;
-            }
+            break;
         }
     }
 
@@ -97,16 +96,8 @@ char* FindMountPoint(const char* dev_node)
 
 void GetDeviceInfo(struct udev* udev, struct udev_device* dev)
 {
-    const char* action = udev_device_get_action(dev);
-    bool added = true;
-
-    if (action)
-    {
-        added = (strcmp(action, "remove") != 0);
-    }
-
     usbDevice = empty;
-
+        
     const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
     if (DeviceName)
         strcpy(usbDevice.DeviceName, DeviceName);
@@ -143,13 +134,17 @@ void GetDeviceInfo(struct udev* udev, struct udev_device* dev)
     if (VendorID)
         strcpy(usbDevice.VendorID, VendorID);
 
-    if (added)
+    const char* action = udev_device_get_action(dev);
+    
+    // if device already exists "action" is NULL, otherwise it can be "add" or "remove"
+
+    if (action && strcmp(action, "remove") == 0)
     {
-        InsertedCallback(usbDevice);
+        RemovedCallback(usbDevice);
     }
     else
     {
-        RemovedCallback(usbDevice);
+        InsertedCallback(usbDevice);
     }
 }
 
@@ -166,31 +161,27 @@ void ProcessDevice(struct udev* udev, struct udev_device* dev)
     }
 }
 
-void EnumerateDevices(struct udev* udev, const char* subsystem)
+void EnumerateDevices(struct udev* udev)
 {
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
-    udev_enumerate_add_match_subsystem(enumerate, subsystem);
+    udev_enumerate_add_match_subsystem(enumerate, "usb");
+	udev_enumerate_add_match_subsystem(enumerate, "tty");
     udev_enumerate_scan_devices(enumerate);
 
-    for (struct udev_list_entry* entry = udev_enumerate_get_list_entry(enumerate);
-        entry != NULL;
-        entry = udev_list_entry_get_next(entry))
+    struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
+    struct udev_list_entry* entry;
+
+    udev_list_entry_foreach(entry, devices)
     {
         const char* path = udev_list_entry_get_name(entry);
-        if (path)
-        {
-            struct udev_device* dev = udev_device_new_from_syspath(udev, path);
+        struct udev_device* dev = udev_device_new_from_syspath(udev, path);
 
-            if (dev)
-            {
-                ProcessDevice(udev, dev);
-            }
-        }
+        ProcessDevice(udev, dev);
     }
 
     udev_enumerate_unref(enumerate);
-}  
+}
 
 /* msleep(): Sleep for the requested number of milliseconds. */
 int msleep(long msec)
@@ -207,18 +198,20 @@ int msleep(long msec)
     ts.tv_sec = msec / 1000;
     ts.tv_nsec = (msec % 1000) * 1000000;
 
-    do {
+    do
+    {
         res = nanosleep(&ts, &ts);
     } while (res && errno == EINTR);
 
     return res;
 }
 
-void MonitorDevices(struct udev* udev, const char* subsystem)
+void MonitorDevices(struct udev* udev)
 {
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
 
-    udev_monitor_filter_add_match_subsystem_devtype(mon, subsystem, NULL);
+    udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
+	udev_monitor_filter_add_match_subsystem_devtype(mon, "tty", NULL);
     udev_monitor_enable_receiving(mon);
 
     int fd = udev_monitor_get_fd(mon);
@@ -229,7 +222,7 @@ void MonitorDevices(struct udev* udev, const char* subsystem)
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
 
-        int ret = select(fd + 1, &fds, NULL, NULL, NULL);
+        int ret = select(fd+1, &fds, NULL, NULL, NULL);
 
         if (ret <= 0)
         {
@@ -250,7 +243,7 @@ void MonitorDevices(struct udev* udev, const char* subsystem)
 extern "C" {
 #endif
 
-    void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, const char* subsystem)
+    void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback)
     {
         InsertedCallback = insertedCallback;
         RemovedCallback = removedCallback;
@@ -263,8 +256,8 @@ extern "C" {
             return;
         }
 
-        EnumerateDevices(g_udev, subsystem);
-        MonitorDevices(g_udev, subsystem);
+        EnumerateDevices(g_udev);
+        MonitorDevices(g_udev);
 
         udev_unref(g_udev);
     }
@@ -274,7 +267,6 @@ extern "C" {
         int found = 0;
 
         struct udev_device* dev = udev_device_new_from_syspath(g_udev, syspath);
-
         if (dev)
         {
             struct udev_device* scsi = GetChild(g_udev, dev, "scsi", NULL);
@@ -308,5 +300,5 @@ extern "C" {
     }
 
 #ifdef __cplusplus
-    }
+}
 #endif

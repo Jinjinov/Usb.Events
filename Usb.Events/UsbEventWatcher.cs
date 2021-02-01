@@ -35,14 +35,14 @@ namespace Usb.Events
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public UsbEventWatcher(string subsystem = "usb")
+        public UsbEventWatcher()
         {
-            Start(subsystem);
+            Start();
         }
 
         #region Methods
 
-        private void Start(string subsystem)
+        private void Start()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -67,7 +67,7 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, subsystem));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
 
                 Task.Run(async () => 
                 {
