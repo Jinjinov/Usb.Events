@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.1.0.1" />
+        <PackageReference Include="Usb.Events" Version="1.1.1.0" />
         
 2. Subscribe to events:
 
@@ -44,6 +44,11 @@ TO DO:
 
 Version history:
 
+- 1.1.1.0:
+    - Fixed a memory leak in Linux function `GetLinuxMountPoint` - by [@maskimthedog]( https://github.com/maskimthedog )
+    - Fixed a bug in Linux where after instantiating `UsbEventWatcher`, the list of devices was empty - by [@maskimthedog]( https://github.com/maskimthedog )
+    - Added monitoring of `TTY` subsystem in Linux - by [@maskimthedog]( https://github.com/maskimthedog )
+    - Fixed a bug in Linux where monitoring would stop upon error - by [@maskimthedog]( https://github.com/maskimthedog )
 - 1.1.0.1:
     - Bug fix
 - 1.1.0.0:
