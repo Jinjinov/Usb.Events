@@ -166,6 +166,7 @@ void EnumerateDevices(struct udev* udev)
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
     udev_enumerate_add_match_subsystem(enumerate, "usb");
+	udev_enumerate_add_match_subsystem(enumerate, "tty");
     udev_enumerate_scan_devices(enumerate);
 
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
@@ -210,6 +211,7 @@ void MonitorDevices(struct udev* udev)
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
 
     udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
+	udev_monitor_filter_add_match_subsystem_devtype(mon, "tty", NULL);
     udev_monitor_enable_receiving(mon);
 
     int fd = udev_monitor_get_fd(mon);
