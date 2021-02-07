@@ -370,7 +370,8 @@ namespace Usb.Events
                                              // do this before GetUsbDevice()
                                              // get VID, PID from "USB\" and drive letter from "USBSTOR\"
                                              // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
-                                             // even more: ASSOCIATORS OF {Win32_USBController.DeviceID= ["Antecedent"] - could give Windows Portable Devices
+                                             // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results and if it includes WPD
+                                             // perhaps: ASSOCIATORS OF {Win32_USBController.DeviceID= ["Antecedent"] - could give even more
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
