@@ -328,8 +328,10 @@ namespace Usb.Events
         {
             DebugOutput(Win32_USBControllerDevice);
 
-            string dependent = Win32_USBControllerDevice["Dependent"].ToString();
-            string[] dependentInfo = dependent.Split('"');
+            //string Win32_USBController = Win32_USBControllerDevice["Antecedent"].ToString();
+
+            string Win32_PnPEntity = Win32_USBControllerDevice["Dependent"].ToString();
+            string[] dependentInfo = Win32_PnPEntity.Split('"');
 
             if (dependentInfo.Length < 2)
                 return string.Empty;
@@ -363,7 +365,10 @@ namespace Usb.Events
 
             UsbDevice usbDevice = new UsbDevice
             {
-                DeviceSystemPath = deviceID,
+                DeviceSystemPath = deviceID, // TODO:: string Win32_USBController = Win32_USBControllerDevice["Antecedent"].ToString();
+                                             // Antecedent => dictionary key
+                                             // do this before GetUsbDevice()
+                                             // get VID, PID from "USB\" and drive letter from "USBSTOR\"
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
@@ -374,7 +379,7 @@ namespace Usb.Events
 #if DEBUG
             using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
 #else
-            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, DeviceID, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
 #endif
 
             bool parseData = true;
@@ -386,7 +391,7 @@ namespace Usb.Events
                 DebugOutput(entity);
 
                 using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
-                        "ASSOCIATORS OF {Win32_PnPEntity.DeviceID=\"" + entity["DeviceID"].ToString().Replace("\\","\\\\") + "\"} WHERE ResultClass = Win32_DiskDrive");
+                        "ASSOCIATORS OF {Win32_PnPEntity.DeviceID=\"" + entity["DeviceID"].ToString().Replace(@"\", @"\\") + "\"} WHERE ResultClass = Win32_DiskDrive");
 
                 foreach (ManagementObject diskDrive in Win32_DiskDrive.Get())
                 {
