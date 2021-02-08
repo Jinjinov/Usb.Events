@@ -366,16 +366,17 @@ namespace Usb.Events
 
             UsbDevice usbDevice = new UsbDevice
             {
-                DeviceSystemPath = USBControllerDeviceID, // TODO:: 
-                                                          // get VID, PID from "USB\" and drive letter from "USBSTOR\"
-                                                          // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
-
-                                                          // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results and if it includes WPD
-                                                          // perhaps: ASSOCIATORS OF {Win32_USBController.DeviceID= ["Antecedent"] - could give even more
+                DeviceSystemPath = PnPEntityDeviceID,
+                                                      
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
             };
+
+            // TODO::
+            // get VID, PID from "USB\" and drive letter from "USBSTOR\"
+            // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
+            // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results
 
             string WindowsPortableDevicesClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
 
@@ -392,6 +393,8 @@ namespace Usb.Events
             foreach (ManagementObject entity in Win32_PnPEntity.Get())
             {
                 DebugOutput(entity);
+
+                // https://stackoverflow.com/questions/9525996/how-can-i-detect-whether-a-garmin-gps-device-is-connected-in-mass-storage-mode
 
                 using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
                         "ASSOCIATORS OF {Win32_PnPEntity.DeviceID=\"" + entity["DeviceID"].ToString().Replace(@"\", @"\\") + "\"} WHERE ResultClass = Win32_DiskDrive");
@@ -456,7 +459,9 @@ namespace Usb.Events
 
             using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{serial}%'");
 
-            if (Win32_USBHub.Get().Count > 0)
+            ManagementObjectCollection USBHubCollection = Win32_USBHub.Get();
+
+            if (USBHubCollection.Count > 0)
             {
                 int attempts = 0;
 
@@ -467,6 +472,62 @@ namespace Usb.Events
                     if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && !string.IsNullOrEmpty(diskDriveDeviceID))
                     {
                         usbDevice.MountedDirectoryPath = GetDiskDrivePath(diskDriveDeviceID);
+                    }
+
+                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath))
+                    {
+                        // https://stackoverflow.com/questions/20143264/find-windows-drive-letter-of-a-removable-disk-from-usb-vid-pid
+
+                        string USBHubDeviceID = string.Empty;
+
+                        foreach (ManagementObject USBHub in USBHubCollection)
+                        {
+                            USBHubDeviceID = USBHub["DeviceID"].ToString();
+                        }
+
+                        List<string> DeviceIDList = new List<string>();
+
+                        using ManagementObjectSearcher associators = new ManagementObjectSearcher(
+                            "ASSOCIATORS OF {Win32_USBController.DeviceID=\"" + USBControllerDeviceID.Replace(@"\", @"\\") + "\"}");
+
+                        foreach (ManagementObject associator in associators.Get())
+                        {
+                            foreach (PropertyData propertyData in associator.Properties)
+                            {
+                                if (propertyData.Name == "DeviceID")
+                                {
+                                    DeviceIDList.Add(associator["DeviceID"].ToString());
+                                    break;
+                                }
+                            }
+                        }
+
+                        // This is working under the assumption that in the list of all devices of Win32_USBController
+                        // Win32_DiskDrive DeviceID="USBSTOR\DISK&VEN_....&PROD_....&REV_....
+                        // comes directly after
+                        // Win32_USBHub DeviceID="USB\\VID_....&PID_....
+                        // in case there are several disk drives
+
+                        int index = DeviceIDList.IndexOf(USBHubDeviceID);
+
+                        if (index != -1)
+                        {
+                            for (int i = index; i < DeviceIDList.Count; ++i)
+                            {
+                                if (DeviceIDList[i].Contains("USBSTOR"))
+                                {
+                                    using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
+                                        $"SELECT DeviceID FROM Win32_DiskDrive WHERE PNPDeviceID = '{DeviceIDList[i].Replace(@"\", @"\\")}'");
+
+                                    foreach (ManagementObject diskDrive in Win32_DiskDrive.Get())
+                                    {
+                                        usbDevice.MountedDirectoryPath = GetDiskDrivePath(diskDrive["DeviceID"].ToString());
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
                     }
 
                     if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath))
