@@ -367,7 +367,6 @@ namespace Usb.Events
             UsbDevice usbDevice = new UsbDevice
             {
                 DeviceSystemPath = PnPEntityDeviceID,
-                                                      
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
