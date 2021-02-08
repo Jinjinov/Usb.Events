@@ -294,9 +294,9 @@ namespace Usb.Events
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            string deviceID = GetUSBControllerDeviceID(Win32_USBControllerDevice);
+            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(Win32_USBControllerDevice);
 
-            UsbDevice? usbDevice = GetUsbDevice(deviceID);
+            UsbDevice? usbDevice = GetUsbDevice(USBControllerDeviceID, PnPEntityDeviceID);
 
             if (usbDevice != null)
             {
@@ -311,9 +311,9 @@ namespace Usb.Events
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            string deviceID = GetUSBControllerDeviceID(Win32_USBControllerDevice);
+            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(Win32_USBControllerDevice);
 
-            UsbDevice? usbDevice = GetUsbDevice(deviceID);
+            UsbDevice? usbDevice = GetUsbDevice(USBControllerDeviceID, PnPEntityDeviceID);
 
             if (usbDevice != null)
             {
@@ -324,24 +324,25 @@ namespace Usb.Events
             }
         }
 
-        private static string GetUSBControllerDeviceID(ManagementBaseObject Win32_USBControllerDevice)
+        private static (string USBControllerDeviceID, string PnPEntityDeviceID) GetUSBControllerDeviceID(ManagementBaseObject Win32_USBControllerDevice)
         {
             DebugOutput(Win32_USBControllerDevice);
 
-            //string Win32_USBController = Win32_USBControllerDevice["Antecedent"].ToString();
+            string Win32_USBController = Win32_USBControllerDevice["Antecedent"].ToString();
+            string[] antecedentInfo = Win32_USBController.Split('"');
 
             string Win32_PnPEntity = Win32_USBControllerDevice["Dependent"].ToString();
             string[] dependentInfo = Win32_PnPEntity.Split('"');
 
-            if (dependentInfo.Length < 2)
-                return string.Empty;
+            if (antecedentInfo.Length < 2 || dependentInfo.Length < 2)
+                return (string.Empty, string.Empty);
 
-            return dependentInfo[1].Replace(@"\\", @"\");
+            return (antecedentInfo[1].Replace(@"\\", @"\"), dependentInfo[1].Replace(@"\\", @"\"));
         }
 
-        private static UsbDevice? GetUsbDevice(string deviceID)
+        private static UsbDevice? GetUsbDevice(string USBControllerDeviceID, string PnPEntityDeviceID)
         {
-            string[] deviceInfo = deviceID.Split('\\');
+            string[] deviceInfo = PnPEntityDeviceID.Split('\\');
 
             if (deviceInfo.Length < 3)
                 return null;
@@ -365,13 +366,12 @@ namespace Usb.Events
 
             UsbDevice usbDevice = new UsbDevice
             {
-                DeviceSystemPath = deviceID, // TODO:: string Win32_USBController = Win32_USBControllerDevice["Antecedent"].ToString();
-                                             // Antecedent => dictionary key
-                                             // do this before GetUsbDevice()
-                                             // get VID, PID from "USB\" and drive letter from "USBSTOR\"
-                                             // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
-                                             // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results and if it includes WPD
-                                             // perhaps: ASSOCIATORS OF {Win32_USBController.DeviceID= ["Antecedent"] - could give even more
+                DeviceSystemPath = USBControllerDeviceID, // TODO:: 
+                                                          // get VID, PID from "USB\" and drive letter from "USBSTOR\"
+                                                          // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
+
+                                                          // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results and if it includes WPD
+                                                          // perhaps: ASSOCIATORS OF {Win32_USBController.DeviceID= ["Antecedent"] - could give even more
                 ProductID = productId,
                 SerialNumber = serial,
                 VendorID = vendorId
