@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>Usb.Events</PackageId>
     <Product>Usb.Events</Product>
-    <Version>1.1.1.1</Version>
+    <Version>10.0.0.0</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <PackageReleaseNotes></PackageReleaseNotes>

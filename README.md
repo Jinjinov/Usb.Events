@@ -5,7 +5,7 @@ How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
-        <PackageReference Include="Usb.Events" Version="1.1.1.1" />
+        <PackageReference Include="Usb.Events" Version="10.0.0.0" />
         
 2. Subscribe to events:
 
@@ -13,25 +13,26 @@ How to use:
 
         class Program
         {
-            static readonly IUsbEventWatcher usbEventWatcher = new UsbEventWatcher();
-
             static void Main(string[] _)
             {
-                usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
-
-                usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
-
-                usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
-
-                usbEventWatcher.UsbDriveMounted += (_, path) =>
+                using (IUsbEventWatcher usbEventWatcher = new UsbEventWatcher())
                 {
-                    Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+                    usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
 
-                    foreach (string entry in Directory.GetFileSystemEntries(path))
-                        Console.WriteLine(entry);
+                    usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
 
-                    Console.WriteLine();
-                };
+                    usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
+
+                    usbEventWatcher.UsbDriveMounted += (_, path) =>
+                    {
+                        Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+
+                        foreach (string entry in Directory.GetFileSystemEntries(path))
+                            Console.WriteLine(entry);
+
+                        Console.WriteLine();
+                    };
+                }
 
                 Console.ReadLine();
             }
@@ -44,6 +45,8 @@ TO DO:
 
 Version history:
 
+- 10.0.0.0:
+    - Fixed a `NullReferenceException` in Linux and macOS - thanks to [@thomOrbelius]( https://github.com/thomOrbelius )
 - 1.1.1.1:
     - Fixed a bug in Windows where `MountedDirectoryPath` wasn't set for a disk drive - thanks to [@cksoft0807]( https://github.com/cksoft0807 )
 - 1.1.1.0:

@@ -3,37 +3,29 @@ using System.IO;
 
 namespace Usb.Events.Test
 {
-    internal class Program
+    class Program
     {
-        private static void Main(string[] _)
+        static void Main(string[] _)
         {
-            UseTheWatcher();
-
-            Console.WriteLine("Dispose done");
-            Console.ReadLine();
-        }
-
-        private static void UseTheWatcher()
-        {
-            using var usbEventWatcher = new UsbEventWatcher();
-
-            usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
-
-            usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
-
-            usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
-
-            usbEventWatcher.UsbDriveMounted += (_, path) =>
+            using (IUsbEventWatcher usbEventWatcher = new UsbEventWatcher())
             {
-                Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+                usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
 
-                foreach (string entry in Directory.GetFileSystemEntries(path))
-                    Console.WriteLine(entry);
+                usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
 
-                Console.WriteLine();
-            };
+                usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
 
-            Console.WriteLine("Press any key to dispose the object");
+                usbEventWatcher.UsbDriveMounted += (_, path) =>
+                {
+                    Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
+
+                    foreach (string entry in Directory.GetFileSystemEntries(path))
+                        Console.WriteLine(entry);
+
+                    Console.WriteLine();
+                };
+            }
+
             Console.ReadLine();
         }
     }
