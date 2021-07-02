@@ -3,12 +3,20 @@ using System.IO;
 
 namespace Usb.Events.Test
 {
-    class Program
+    internal class Program
     {
-        static readonly IUsbEventWatcher usbEventWatcher = new UsbEventWatcher();
-
-        static void Main(string[] _)
+        private static void Main(string[] _)
         {
+            UseTheWatcher();
+
+            Console.WriteLine("Dispose done");
+            Console.ReadLine();
+        }
+
+        private static void UseTheWatcher()
+        {
+            using var usbEventWatcher = new UsbEventWatcher();
+
             usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
 
             usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
@@ -25,6 +33,7 @@ namespace Usb.Events.Test
                 Console.WriteLine();
             };
 
+            Console.WriteLine("Press any key to dispose the object");
             Console.ReadLine();
         }
     }
