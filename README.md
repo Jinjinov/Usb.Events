@@ -15,24 +15,23 @@ How to use:
         {
             static void Main(string[] _)
             {
-                using (IUsbEventWatcher usbEventWatcher = new UsbEventWatcher())
+                using IUsbEventWatcher usbEventWatcher = new UsbEventWatcher();
+
+                usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
+
+                usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
+
+                usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
+
+                usbEventWatcher.UsbDriveMounted += (_, path) =>
                 {
-                    usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
+                    Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
 
-                    usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
+                    foreach (string entry in Directory.GetFileSystemEntries(path))
+                        Console.WriteLine(entry);
 
-                    usbEventWatcher.UsbDriveEjected += (_, path) => Console.WriteLine("Ejected:" + Environment.NewLine + path + Environment.NewLine);
-
-                    usbEventWatcher.UsbDriveMounted += (_, path) =>
-                    {
-                        Console.WriteLine("Mounted:" + Environment.NewLine + path + Environment.NewLine);
-
-                        foreach (string entry in Directory.GetFileSystemEntries(path))
-                            Console.WriteLine(entry);
-
-                        Console.WriteLine();
-                    };
-                }
+                    Console.WriteLine();
+                };
 
                 Console.ReadLine();
             }
