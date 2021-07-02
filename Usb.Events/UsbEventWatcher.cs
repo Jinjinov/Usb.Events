@@ -17,12 +17,14 @@ namespace Usb.Events
         public List<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
         public event EventHandler<string>? UsbDriveMounted;
+
         public event EventHandler<string>? UsbDriveEjected;
 
         public event EventHandler<UsbDevice>? UsbDeviceAdded;
+
         public event EventHandler<UsbDevice>? UsbDeviceRemoved;
 
-        #endregion
+        #endregion IUsbEventWatcher
 
         #region Windows fields
 
@@ -31,7 +33,7 @@ namespace Usb.Events
         private ManagementEventWatcher _USBControllerDeviceCreationEventWatcher = null!;
         private ManagementEventWatcher _USBControllerDeviceDeletionEventWatcher = null!;
 
-        #endregion
+        #endregion Windows fields
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -69,7 +71,7 @@ namespace Usb.Events
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
 
-                Task.Run(async () => 
+                Task.Run(async () =>
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
@@ -140,15 +142,15 @@ namespace Usb.Events
             }
         }
 
-        #endregion
+        #endregion Methods
 
         #region Linux and Mac methods
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void UsbDeviceCallback(UsbDeviceData usbDevice);
+        private delegate void UsbDeviceCallback(UsbDeviceData usbDevice);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Auto)]
-        delegate void MountPointCallback(string mountPoint);
+        private delegate void MountPointCallback(string mountPoint);
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
@@ -161,18 +163,18 @@ namespace Usb.Events
         }
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
+        private static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+        private static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
+        private static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+        private static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
-        #endregion
+        #endregion Linux and Mac methods
 
         /*
         Product: DT_101_II
@@ -584,16 +586,16 @@ namespace Usb.Events
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
 
-            _volumeChangeEventWatcher.Stop();
-            _volumeChangeEventWatcher.Dispose();
+            _volumeChangeEventWatcher?.Stop();
+            _volumeChangeEventWatcher?.Dispose();
 
-            _USBControllerDeviceCreationEventWatcher.Stop();
-            _USBControllerDeviceCreationEventWatcher.Dispose();
+            _USBControllerDeviceCreationEventWatcher?.Stop();
+            _USBControllerDeviceCreationEventWatcher?.Dispose();
 
-            _USBControllerDeviceDeletionEventWatcher.Stop();
-            _USBControllerDeviceDeletionEventWatcher.Dispose();
+            _USBControllerDeviceDeletionEventWatcher?.Stop();
+            _USBControllerDeviceDeletionEventWatcher?.Dispose();
         }
 
-        #endregion
+        #endregion Windows methods
     }
 }
