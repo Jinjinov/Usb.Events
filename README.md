@@ -1,7 +1,8 @@
 # Usb.Events
+
 Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.
 
-How to use:
+## How to use:
 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
@@ -37,15 +38,15 @@ How to use:
             }
         }
 
-TO DO:
+## TO DO:
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in macOS
 
-Version history:
+## Version history:
 
 - 10.0.0.0:
-    - Fixed a `NullReferenceException` in Linux and macOS - thanks to [@thomOrbelius]( https://github.com/thomOrbelius )
+    - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius]( https://github.com/thomOrbelius )
 - 1.1.1.1:
     - Fixed a bug in Windows where `MountedDirectoryPath` wasn't set for a disk drive - thanks to [@cksoft0807]( https://github.com/cksoft0807 )
 - 1.1.1.0:
