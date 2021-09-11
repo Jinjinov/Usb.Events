@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Usb.Events", "Usb.Events\Usb.Events.csproj", "{0F2A1AF2-AAE7-4424-936F-D73A8DBA68B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usb.Events.Test", "Usb.Events.Test\Usb.Events.Test.csproj", "{BF843FAC-B760-4A05-8FED-354DC0741F73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Usb.Events.Test", "Usb.Events.Test\Usb.Events.Test.csproj", "{BF843FAC-B760-4A05-8FED-354DC0741F73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Usb.Events.Example", "Usb.Events.Example\Usb.Events.Example.csproj", "{2C5914F6-3FB1-416E-BADA-51B08F55CE9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{BF843FAC-B760-4A05-8FED-354DC0741F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF843FAC-B760-4A05-8FED-354DC0741F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF843FAC-B760-4A05-8FED-354DC0741F73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C5914F6-3FB1-416E-BADA-51B08F55CE9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C5914F6-3FB1-416E-BADA-51B08F55CE9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C5914F6-3FB1-416E-BADA-51B08F55CE9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C5914F6-3FB1-416E-BADA-51B08F55CE9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
