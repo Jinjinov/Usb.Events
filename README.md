@@ -52,14 +52,14 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 ## Version history:
 
 - 10.0.0.0:
-    - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius]( https://github.com/thomOrbelius )
+    - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius](https://github.com/thomOrbelius)
 - 1.1.1.1:
-    - Fixed a bug in Windows where `MountedDirectoryPath` wasn't set for a disk drive - thanks to [@cksoft0807]( https://github.com/cksoft0807 )
+    - Fixed a bug in Windows where `MountedDirectoryPath` wasn't set for a disk drive - thanks to [@cksoft0807](https://github.com/cksoft0807)
 - 1.1.1.0:
-    - Fixed a memory leak in Linux function `GetLinuxMountPoint` - by [@maskimthedog]( https://github.com/maskimthedog )
-    - Fixed a bug in Linux where after instantiating `UsbEventWatcher`, the list of devices was empty - by [@maskimthedog]( https://github.com/maskimthedog )
-    - Added monitoring of `TTY` subsystem in Linux - by [@maskimthedog]( https://github.com/maskimthedog )
-    - Fixed a bug in Linux where monitoring would stop upon error - by [@maskimthedog]( https://github.com/maskimthedog )
+    - Fixed a memory leak in Linux function `GetLinuxMountPoint` - by [@maskimthedog](https://github.com/maskimthedog)
+    - Fixed a bug in Linux where after instantiating `UsbEventWatcher`, the list of devices was empty - by [@maskimthedog](https://github.com/maskimthedog)
+    - Added monitoring of `TTY` subsystem in Linux - by [@maskimthedog](https://github.com/maskimthedog)
+    - Fixed a bug in Linux where monitoring would stop upon error - by [@maskimthedog](https://github.com/maskimthedog)
 - 1.1.0.1:
     - Fixed a bug
 - 1.1.0.0:
