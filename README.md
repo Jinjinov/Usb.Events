@@ -40,6 +40,10 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
             }
         }
 
+## Example
+
+`Usb.Events.Example` demonstrates how to use Windows `SetupAPI.dll` functions [SetupDiGetClassDevs](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetclassdevsw), [SetupDiEnumDeviceInfo](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdienumdeviceinfo) and [SetupDiGetDeviceProperty](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetdevicepropertyw) together with [DEVPKEY_Device_DeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-devicedesc), [DEVPKEY_Device_BusReportedDeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-busreporteddevicedesc) and [DEVPKEY_Device_FriendlyName](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-friendlyname) to get "Device description", "Bus reported device description" and "Friendly name" of the `Usb.Events.UsbDevice` reported by the `Usb.Events.IUsbEventWatcher.UsbDeviceAdded` event.
+
 ## TO DO:
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
