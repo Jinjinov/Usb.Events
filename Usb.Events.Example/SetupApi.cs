@@ -16,7 +16,7 @@ namespace Usb.Events.Example
             _data = data;
         }
 
-        public static Device Get(string pnpDeviceId)
+        public static Device? Get(string pnpDeviceId)
         {
             if (pnpDeviceId == null)
                 throw new ArgumentNullException("pnpDeviceId");
@@ -74,7 +74,7 @@ namespace Usb.Events.Example
 
             try
             {
-                return Marshal.PtrToStringAnsi(buffer);
+                return Marshal.PtrToStringAnsi(buffer) ?? string.Empty;
             }
             finally
             {
@@ -180,14 +180,14 @@ namespace Usb.Events.Example
 
         private string[] GetStringListProperty(DEVPROPKEY key)
         {
-            SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out int type, IntPtr.Zero, 0, out int size, 0);
+            SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, IntPtr.Zero, 0, out int size, 0);
             if (size == 0)
                 return new string[0];
 
             IntPtr buffer = Marshal.AllocHGlobal(size);
             try
             {
-                if (!SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out type, buffer, size, out size, 0))
+                if (!SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, buffer, size, out size, 0))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
                 List<string> strings = new List<string>();
@@ -213,17 +213,17 @@ namespace Usb.Events.Example
 
         public string GetStringProperty(DEVPROPKEY key)
         {
-            SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out int type, IntPtr.Zero, 0, out int size, 0);
+            SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, IntPtr.Zero, 0, out int size, 0);
             if (size == 0)
-                return null;
+                return string.Empty;
 
             IntPtr buffer = Marshal.AllocHGlobal(size);
             try
             {
-                if (!SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out type, buffer, size, out size, 0))
+                if (!SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, buffer, size, out size, 0))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                return Marshal.PtrToStringUni(buffer);
+                return Marshal.PtrToStringUni(buffer) ?? string.Empty;
             }
             finally
             {

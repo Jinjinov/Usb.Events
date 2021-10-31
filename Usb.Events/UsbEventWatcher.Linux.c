@@ -136,13 +136,13 @@ void GetDeviceInfo(struct udev* udev, struct udev_device* dev)
 
     const char* action = udev_device_get_action(dev);
     
-    // if device already exists "action" is NULL, otherwise it can be "add" or "remove"
+    // if device already exists "action" is NULL, otherwise it can be "add", "remove", "change", "move", "online", "offline", "bind", "unbind"
 
-    if (action && strcmp(action, "remove") == 0)
+    if (action && (strcmp(action, "remove") == 0 || strcmp(action, "unbind") == 0 || strcmp(action, "offline") == 0))
     {
         RemovedCallback(usbDevice);
     }
-    else
+    else if (action && (strcmp(action, "add") == 0 || strcmp(action, "bind") == 0 || strcmp(action, "online") == 0))
     {
         InsertedCallback(usbDevice);
     }

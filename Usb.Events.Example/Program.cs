@@ -15,7 +15,10 @@ namespace Usb.Events.Example
             {
                 Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
 
-                Device dev = Device.Get(device.DeviceSystemPath);
+                Device? dev = Device.Get(device.DeviceSystemPath);
+
+                if (dev == null)
+                    return;
 
                 Console.WriteLine("Device Desc: " + dev.GetStringProperty(Device.DEVPKEY_Device_DeviceDesc));
                 Console.WriteLine("Bus Reported Device Desc: " + dev.GetStringProperty(Device.DEVPKEY_Device_BusReportedDeviceDesc));
@@ -24,7 +27,10 @@ namespace Usb.Events.Example
 
                 Console.WriteLine("Parent: " + dev.ParentPnpDeviceId);
 
-                Device parent = Device.Get(dev.ParentPnpDeviceId);
+                Device? parent = Device.Get(dev.ParentPnpDeviceId);
+
+                if (parent == null)
+                    return;
 
                 Console.WriteLine("Device Desc: " + parent.GetStringProperty(Device.DEVPKEY_Device_DeviceDesc));
                 Console.WriteLine("Bus Reported Device Desc: " + parent.GetStringProperty(Device.DEVPKEY_Device_BusReportedDeviceDesc));
@@ -35,7 +41,10 @@ namespace Usb.Events.Example
                 {
                     Console.WriteLine("Child: " + pnpDeviceId);
 
-                    Device child = Device.Get(pnpDeviceId);
+                    Device? child = Device.Get(pnpDeviceId);
+
+                    if (child == null)
+                        continue;
 
                     Console.WriteLine("Device Desc: " + child.GetStringProperty(Device.DEVPKEY_Device_DeviceDesc));
                     Console.WriteLine("Bus Reported Device Desc: " + child.GetStringProperty(Device.DEVPKEY_Device_BusReportedDeviceDesc));

@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.0.0.0" />
+            <PackageReference Include="Usb.Events" Version="10.0.0.1" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -51,6 +51,8 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 
 ## Version history:
 
+- 10.0.0.1:
+    - Fixed a false "device added" events bug on Linux - thanks to [@d79ima](https://github.com/d79ima)
 - 10.0.0.0:
     - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius](https://github.com/thomOrbelius)
 - 1.1.1.1:
