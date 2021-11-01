@@ -61,9 +61,9 @@ Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (
 
 - 10.0.1.0:
     - Added `bool includeTTY = false` to `UsbEventWatcher` constructor
-    - Fixed a `EnumerateDevices` bug on Linux - thanks to [@d79ima](https://github.com/d79ima)
+    - Fixed a `EnumerateDevices` bug in Linux - thanks to [@d79ima](https://github.com/d79ima)
 - 10.0.0.1:
-    - Fixed a false "device added" events bug on Linux - thanks to [@d79ima](https://github.com/d79ima)
+    - Fixed a false "device added" events bug in Linux - thanks to [@d79ima](https://github.com/d79ima)
 - 10.0.0.0:
     - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius](https://github.com/thomOrbelius)
 - 1.1.1.1:
