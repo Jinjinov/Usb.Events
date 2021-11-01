@@ -35,14 +35,14 @@ namespace Usb.Events
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public UsbEventWatcher()
+        public UsbEventWatcher(bool includeTTY = false)
         {
-            Start();
+            Start(includeTTY);
         }
 
         #region Methods
 
-        private void Start()
+        private void Start(bool includeTTY)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -67,7 +67,7 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback));
+                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, includeTTY));
 
                 Task.Run(async () => 
                 {
@@ -164,7 +164,7 @@ namespace Usb.Events
         static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, [MarshalAs(UnmanagedType.Bool)] bool includeTTY);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
