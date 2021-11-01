@@ -164,7 +164,7 @@ namespace Usb.Events
         static extern void GetLinuxMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
-        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, [MarshalAs(UnmanagedType.Bool)] bool includeTTY);
+        static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, bool includeTTY);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
