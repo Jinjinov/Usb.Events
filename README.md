@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.0.0.1" />
+            <PackageReference Include="Usb.Events" Version="10.0.1.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -40,6 +40,14 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
             }
         }
 
+## Constructor parameter:
+
+```
+UsbEventWatcher(bool includeTTY = false)
+```
+
+Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
+
 ## Example:
 
 `Usb.Events.Example` demonstrates how to use Windows `SetupAPI.dll` functions [SetupDiGetClassDevs](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetclassdevsw), [SetupDiEnumDeviceInfo](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdienumdeviceinfo) and [SetupDiGetDeviceProperty](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetdevicepropertyw) together with [DEVPKEY_Device_DeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-devicedesc), [DEVPKEY_Device_BusReportedDeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-busreporteddevicedesc) and [DEVPKEY_Device_FriendlyName](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-friendlyname) to get "Device description", "Bus reported device description" and "Friendly name" of the `Usb.Events.UsbDevice` reported by the `Usb.Events.IUsbEventWatcher.UsbDeviceAdded` event.
@@ -51,6 +59,9 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 
 ## Version history:
 
+- 10.0.1.0:
+    - Added `bool includeTTY = false` to `UsbEventWatcher` constructor
+    - Fixed a `EnumerateDevices` bug on Linux - thanks to [@d79ima](https://github.com/d79ima)
 - 10.0.0.1:
     - Fixed a false "device added" events bug on Linux - thanks to [@d79ima](https://github.com/d79ima)
 - 10.0.0.0:
