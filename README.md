@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.0.1.0" />
+            <PackageReference Include="Usb.Events" Version="10.0.1.1" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -59,6 +59,9 @@ Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (
 
 ## Version history:
 
+- 10.0.1.1:
+    - Added `bool startImmediately = true` to `UsbEventWatcher` constructor
+    - Added `void Start(bool includeTTY = false)` to `IUsbEventWatcher`
 - 10.0.1.0:
     - Added `bool includeTTY = false` to `UsbEventWatcher` constructor
     - Fixed a `EnumerateDevices` bug in Linux - thanks to [@d79ima](https://github.com/d79ima)

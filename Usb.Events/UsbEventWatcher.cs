@@ -35,14 +35,17 @@ namespace Usb.Events
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public UsbEventWatcher(bool includeTTY = false)
+        public UsbEventWatcher(bool startImmediately = true, bool includeTTY = false)
         {
-            Start(includeTTY);
+            if (startImmediately)
+            {
+                Start(includeTTY);
+            }
         }
 
         #region Methods
 
-        private void Start(bool includeTTY)
+        public void Start(bool includeTTY = false)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

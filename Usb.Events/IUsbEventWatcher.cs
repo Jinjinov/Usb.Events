@@ -13,5 +13,7 @@ namespace Usb.Events
 
         event EventHandler<UsbDevice>? UsbDeviceAdded;
         event EventHandler<UsbDevice>? UsbDeviceRemoved;
+
+        void Start(bool includeTTY = false);
     }
 }
