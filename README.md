@@ -40,7 +40,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
             }
         }
 
-## Constructor parameter:
+## Constructor parameters:
 
 ```
 UsbEventWatcher(bool startImmediately = true, bool includeTTY = false)
