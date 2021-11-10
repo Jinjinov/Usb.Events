@@ -43,10 +43,11 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 ## Constructor parameter:
 
 ```
-UsbEventWatcher(bool includeTTY = false)
+UsbEventWatcher(bool startImmediately = true, bool includeTTY = false)
 ```
 
-Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
+- Set `startImmediately` to `false` if you don't want to start immediately. Then call the `Start(bool includeTTY = false)` method.
+- Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
 
 ## Example:
 
