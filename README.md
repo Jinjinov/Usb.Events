@@ -46,7 +46,8 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 UsbEventWatcher(bool startImmediately = true, bool includeTTY = false)
 ```
 
-- Set `startImmediately` to `false` if you don't want to start immediately. Then call the `Start(bool includeTTY = false)` method.
+- Set `startImmediately` to `false` if you don't want to start immediately.  
+Then call the `Start(bool includeTTY = false)` method.
 - Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
 
 ## Example:
