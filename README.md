@@ -54,6 +54,23 @@ Then call the `Start(bool includeTTY = false)` method.
 
 `Usb.Events.Example` demonstrates how to use Windows `SetupAPI.dll` functions [SetupDiGetClassDevs](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetclassdevsw), [SetupDiEnumDeviceInfo](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdienumdeviceinfo) and [SetupDiGetDeviceProperty](https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdigetdevicepropertyw) together with [DEVPKEY_Device_DeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-devicedesc), [DEVPKEY_Device_BusReportedDeviceDesc](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-busreporteddevicedesc) and [DEVPKEY_Device_FriendlyName](https://docs.microsoft.com/en-us/windows-hardware/drivers/install/devpkey-device-friendlyname) to get "Device description", "Bus reported device description" and "Friendly name" of the `Usb.Events.UsbDevice` reported by the `Usb.Events.IUsbEventWatcher.UsbDeviceAdded` event.
 
+## How to build:
+
+`Usb.Events.csproj` uses `gcc` to build `UsbEventWatcher.Mac.dylib` from `UsbEventWatcher.Mac.c` when run on macOS and to build `UsbEventWatcher.Linux.so` from `UsbEventWatcher.Linux.c` when run on Linux.
+
+```
+  <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
+    <Exec Condition="'$(IsMacOS)' == 'true'"
+          WorkingDirectory=".\"
+          Command="gcc -shared -framework CoreFoundation -framework DiskArbitration -framework IOKit UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib" />
+    <Exec Condition="'$(IsMacOS)' != 'true'"
+          WorkingDirectory=".\"
+          Command="gcc -shared UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
+  </Target>
+```
+
+`Usb.Events.dll` expects to find `UsbEventWatcher.Linux.so` and `UsbEventWatcher.Mac.dylib` in the working directory when it runs, so make sure to build the project on Linux and Mac before building the NuGet package on Windows.
+
 ## TO DO:
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
