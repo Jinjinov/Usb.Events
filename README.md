@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.0.1.1" />
+            <PackageReference Include="Usb.Events" Version="10.1.0.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -78,6 +78,8 @@ Then call the `Start(bool includeTTY = false)` method.
 
 ## Version history:
 
+- 10.1.0.0:
+    - Updated `System.Management` package reference from `4.7.0` to `7.0.0`
 - 10.0.1.1:
     - Added `bool startImmediately = true` to `UsbEventWatcher` constructor
     - Added `void Start(bool includeTTY = false)` to `IUsbEventWatcher`
