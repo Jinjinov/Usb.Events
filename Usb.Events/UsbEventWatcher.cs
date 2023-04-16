@@ -225,6 +225,23 @@ namespace Usb.Events
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
                 .Select(driveInfo => driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)));
 
+            //using ManagementObjectSearcher Win32_USBControllerDevice = new ManagementObjectSearcher($"SELECT * FROM Win32_USBControllerDevice");
+
+            //foreach (ManagementObject USBControllerDevice in Win32_USBControllerDevice.Get())
+            //{
+            //    (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(USBControllerDevice);
+
+            //    UsbDevice? usbDevice = GetUsbDevice(USBControllerDeviceID, PnPEntityDeviceID);
+
+            //    if (usbDevice != null)
+            //    {
+            //        usbDevice.IsEjected = false;
+            //        usbDevice.IsMounted = true;
+
+            //        UsbDeviceList.Add(usbDevice);
+            //    }
+            //}
+
             //_deviceChangeEventWatcher = new ManagementEventWatcher();
             //_deviceChangeEventWatcher.EventArrived += new EventArrivedEventHandler(DeviceChangeEventWatcher_EventArrived);
             //_deviceChangeEventWatcher.Query = new WqlEventQuery("SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2 or EventType = 3"); -licence key detected 3x, no info
@@ -349,7 +366,7 @@ namespace Usb.Events
             return (antecedentInfo[1].Replace(@"\\", @"\"), dependentInfo[1].Replace(@"\\", @"\"));
         }
 
-        private static UsbDevice? GetUsbDevice(string USBControllerDeviceID, string PnPEntityDeviceID)
+        private static UsbDevice? GetUsbDevice(string PnPEntityDeviceID)
         {
             string[] deviceInfo = PnPEntityDeviceID.Split('\\');
 
@@ -386,12 +403,31 @@ namespace Usb.Events
             // this doesn't depend on: LIKE '%{serial}%' - in case that "USB\" and "USBSTOR\" don't end with the same serial
             // check if Win32_PnPEntity WHERE DeviceID="USB\" and "USBSTOR\" return different results
 
-            string WindowsPortableDevicesClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
+            return usbDevice;
+        }
+
+        private static UsbDevice? GetUsbDevice(string USBControllerDeviceID, string PnPEntityDeviceID)
+        {
+            UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
+
+            if (usbDevice == null)
+                return null;
+
+            string diskDriveDeviceID = GetData(usbDevice);
+
+            GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID);
+
+            return usbDevice;
+        }
+
+        private static string GetData(UsbDevice usbDevice)
+        {
+            const string WindowsPortableDevicesClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
 
 #if DEBUG
-            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 #else
-            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, DeviceID, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{serial}%'");
+            using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, DeviceID, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 #endif
 
             bool parseData = true;
@@ -465,7 +501,12 @@ namespace Usb.Events
                 /**/
             }
 
-            using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{serial}%'");
+            return diskDriveDeviceID;
+        }
+
+        private static void GetMountedDirectoryPath(UsbDevice usbDevice, string diskDriveDeviceID, string USBControllerDeviceID)
+        {
+            using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 
             ManagementObjectCollection USBHubCollection = Win32_USBHub.Get();
 
@@ -475,7 +516,7 @@ namespace Usb.Events
 
                 while (++attempts < 1000)
                 {
-                    usbDevice.MountedDirectoryPath = GetDevicePath(serial);
+                    usbDevice.MountedDirectoryPath = GetDevicePath(usbDevice.SerialNumber);
 
                     if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && !string.IsNullOrEmpty(diskDriveDeviceID))
                     {
@@ -548,8 +589,6 @@ namespace Usb.Events
                     }
                 }
             }
-
-            return usbDevice;
         }
 
         private static string GetDevicePath(string serial)

@@ -9,6 +9,11 @@ namespace Usb.Events.Test
         {
             using IUsbEventWatcher usbEventWatcher = new UsbEventWatcher();
 
+            foreach (UsbDevice device in usbEventWatcher.UsbDeviceList)
+            {
+                Console.WriteLine(device + Environment.NewLine);
+            }
+
             usbEventWatcher.UsbDeviceRemoved += (_, device) => Console.WriteLine("Removed:" + Environment.NewLine + device + Environment.NewLine);
 
             usbEventWatcher.UsbDeviceAdded += (_, device) => Console.WriteLine("Added:" + Environment.NewLine + device + Environment.NewLine);
