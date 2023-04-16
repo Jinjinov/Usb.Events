@@ -236,7 +236,9 @@ namespace Usb.Events
 
                 if (usbDevice != null)
                 {
-                    GetData(usbDevice);
+                    string diskDriveDeviceID = GetData(usbDevice);
+
+                    GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID, maxAttempts: 1);
 
                     usbDevice.IsEjected = false;
                     usbDevice.IsMounted = true;
@@ -420,12 +422,12 @@ namespace Usb.Events
         {
             UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
 
-            if (usbDevice == null)
-                return null;
+            if (usbDevice != null)
+            {
+                string diskDriveDeviceID = GetData(usbDevice);
 
-            string diskDriveDeviceID = GetData(usbDevice);
-
-            GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID);
+                GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID);
+            }
 
             return usbDevice;
         }
@@ -514,7 +516,7 @@ namespace Usb.Events
             return diskDriveDeviceID;
         }
 
-        private static void GetMountedDirectoryPath(UsbDevice usbDevice, string diskDriveDeviceID, string USBControllerDeviceID)
+        private static void GetMountedDirectoryPath(UsbDevice usbDevice, string diskDriveDeviceID, string USBControllerDeviceID, int maxAttempts = 1000)
         {
             using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 
@@ -522,9 +524,11 @@ namespace Usb.Events
 
             if (USBHubCollection.Count > 0)
             {
-                int attempts = 0;
+                string USBHubDeviceID = string.Empty;
 
-                while (++attempts < 1000)
+                int attempt = 0;
+
+                while (++attempt <= maxAttempts)
                 {
                     usbDevice.MountedDirectoryPath = GetDevicePath(usbDevice.SerialNumber);
 
@@ -537,14 +541,15 @@ namespace Usb.Events
                     {
                         // https://stackoverflow.com/questions/20143264/find-windows-drive-letter-of-a-removable-disk-from-usb-vid-pid
 
-                        string USBHubDeviceID = string.Empty;
-
-                        foreach (ManagementObject USBHub in USBHubCollection)
+                        if (string.IsNullOrEmpty(USBHubDeviceID))
                         {
-                            USBHubDeviceID = USBHub["DeviceID"].ToString();
+                            foreach (ManagementObject USBHub in USBHubCollection)
+                            {
+                                USBHubDeviceID = USBHub["DeviceID"].ToString();
+                            }
                         }
 
-                        List<string> DeviceIDList = new List<string>();
+                        List<string> deviceIDList = new List<string>();
 
                         using ManagementObjectSearcher associators = new ManagementObjectSearcher(
                             "ASSOCIATORS OF {Win32_USBController.DeviceID=\"" + USBControllerDeviceID.Replace(@"\", @"\\") + "\"}");
@@ -555,7 +560,7 @@ namespace Usb.Events
                             {
                                 if (propertyData.Name == "DeviceID")
                                 {
-                                    DeviceIDList.Add(associator["DeviceID"].ToString());
+                                    deviceIDList.Add(associator["DeviceID"].ToString());
                                     break;
                                 }
                             }
@@ -567,16 +572,16 @@ namespace Usb.Events
                         // Win32_USBHub DeviceID="USB\\VID_....&PID_....
                         // in case there are several disk drives
 
-                        int index = DeviceIDList.IndexOf(USBHubDeviceID);
+                        int index = deviceIDList.IndexOf(USBHubDeviceID);
 
                         if (index != -1)
                         {
-                            for (int i = index; i < DeviceIDList.Count; ++i)
+                            for (int i = index; i < deviceIDList.Count; ++i)
                             {
-                                if (DeviceIDList[i].Contains("USBSTOR"))
+                                if (deviceIDList[i].Contains("USBSTOR"))
                                 {
                                     using ManagementObjectSearcher Win32_DiskDrive = new ManagementObjectSearcher(
-                                        $"SELECT DeviceID FROM Win32_DiskDrive WHERE PNPDeviceID = '{DeviceIDList[i].Replace(@"\", @"\\")}'");
+                                        $"SELECT DeviceID FROM Win32_DiskDrive WHERE PNPDeviceID = '{deviceIDList[i].Replace(@"\", @"\\")}'");
 
                                     foreach (ManagementObject diskDrive in Win32_DiskDrive.Get())
                                     {
@@ -591,7 +596,7 @@ namespace Usb.Events
 
                     if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath))
                     {
-                        System.Threading.Thread.Sleep(1);
+                        Thread.Sleep(1);
                     }
                     else
                     {
