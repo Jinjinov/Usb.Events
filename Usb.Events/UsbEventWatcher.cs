@@ -55,7 +55,12 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                StartWindowsWatcher(getAlreadyPresentDevices);
+                if (getAlreadyPresentDevices)
+                {
+                    GetAlreadyPresentDevices();
+                }
+
+                StartWindowsWatcher();
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -219,33 +224,33 @@ namespace Usb.Events
 
         #region Windows methods
 
-        private void StartWindowsWatcher(bool getAlreadyPresentDevices = false)
+        private void GetAlreadyPresentDevices()
+        {
+            using ManagementObjectSearcher Win32_USBControllerDevice = new ManagementObjectSearcher($"SELECT * FROM Win32_USBControllerDevice");
+
+            foreach (ManagementObject USBControllerDevice in Win32_USBControllerDevice.Get())
+            {
+                (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(USBControllerDevice);
+
+                UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
+
+                if (usbDevice != null)
+                {
+                    GetData(usbDevice);
+
+                    usbDevice.IsEjected = false;
+                    usbDevice.IsMounted = true;
+
+                    UsbDeviceList.Add(usbDevice);
+                }
+            }
+        }
+
+        private void StartWindowsWatcher()
         {
             UsbDrivePathList = new List<string>(DriveInfo.GetDrives()
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
                 .Select(driveInfo => driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)));
-
-            if (getAlreadyPresentDevices)
-            {
-                using ManagementObjectSearcher Win32_USBControllerDevice = new ManagementObjectSearcher($"SELECT * FROM Win32_USBControllerDevice");
-
-                foreach (ManagementObject USBControllerDevice in Win32_USBControllerDevice.Get())
-                {
-                    (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(USBControllerDevice);
-
-                    UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
-
-                    if (usbDevice != null)
-                    {
-                        GetData(usbDevice);
-
-                        usbDevice.IsEjected = false;
-                        usbDevice.IsMounted = true;
-
-                        UsbDeviceList.Add(usbDevice);
-                    }
-                }
-            }
 
             //_deviceChangeEventWatcher = new ManagementEventWatcher();
             //_deviceChangeEventWatcher.EventArrived += new EventArrivedEventHandler(DeviceChangeEventWatcher_EventArrived);
