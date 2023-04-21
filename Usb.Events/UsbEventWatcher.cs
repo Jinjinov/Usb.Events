@@ -36,17 +36,17 @@ namespace Usb.Events
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private bool _isRunning;
 
-        public UsbEventWatcher(bool startImmediately = true, bool getAlreadyPresentDevices = false, bool includeTTY = false)
+        public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool includeTTY = false)
         {
             if (startImmediately)
             {
-                Start(getAlreadyPresentDevices, includeTTY);
+                Start(addAlreadyPresentDevicesToList, includeTTY);
             }
         }
 
         #region Methods
 
-        public void Start(bool getAlreadyPresentDevices = false, bool includeTTY = false)
+        public void Start(bool addAlreadyPresentDevicesToList = false, bool includeTTY = false)
         {
             if (_isRunning)
                 return;
@@ -55,9 +55,9 @@ namespace Usb.Events
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (getAlreadyPresentDevices)
+                if (addAlreadyPresentDevicesToList)
                 {
-                    GetAlreadyPresentDevices();
+                    AddAlreadyPresentDevicesToList();
                 }
 
                 StartWindowsWatcher();
@@ -224,7 +224,7 @@ namespace Usb.Events
 
         #region Windows methods
 
-        private void GetAlreadyPresentDevices()
+        private void AddAlreadyPresentDevicesToList()
         {
             using ManagementObjectSearcher Win32_USBControllerDevice = new ManagementObjectSearcher($"SELECT * FROM Win32_USBControllerDevice");
 
