@@ -79,9 +79,9 @@ char* getMountPathByBSDName(char* bsdName)
 	char* cVal;
 	int found = 0;
 
-	CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMasterPortDefault, 0, bsdName);
+	CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMainPortDefault, 0, bsdName);
 	io_iterator_t it;
-	IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &it);
+	IOServiceGetMatchingServices(kIOMainPortDefault, matchingDictionary, &it);
 	io_object_t service;
 	while ((service = IOIteratorNext(it)))
 	{
@@ -359,7 +359,7 @@ void usb_device_removed(void* refcon, io_iterator_t iterator)
 
 void init_notifier()
 {
-	notificationPort = IONotificationPortCreate(kIOMasterPortDefault);
+	notificationPort = IONotificationPortCreate(kIOMainPortDefault);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	printf("init_notifier ok\n");
 }
@@ -464,7 +464,7 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 
 	io_iterator_t foundIterator = 0;
 	io_service_t usbInterface;
-	IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &foundIterator);
+	IOServiceGetMatchingServices(kIOMainPortDefault, matchingDictionary, &foundIterator);
 
 	char* cVal;
 	int found = 0;
