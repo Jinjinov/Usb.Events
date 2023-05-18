@@ -41,14 +41,15 @@ static IONotificationPortRef notificationPort;
 
 void print_cfstringref(const char* prefix, CFStringRef cfVal)
 {
-	char* cVal = malloc(CFStringGetLength(cfVal) * sizeof(char));
+	int len = CFStringGetLength(cfVal) + 1;
+	char* cVal = malloc(len * sizeof(char));
 
 	if (!cVal)
 	{
 		return;
 	}
 
-	if (CFStringGetCString(cfVal, cVal, CFStringGetLength(cfVal) + 1, kCFStringEncodingASCII))
+	if (CFStringGetCString(cfVal, cVal, len, kCFStringEncodingASCII))
 	{
 		printf("%s %s\n", prefix, cVal);
 	}
@@ -78,6 +79,7 @@ char* getMountPathByBSDName(char* bsdName)
 
 	char* cVal;
 	int found = 0;
+	int len;
 
 	CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMainPortDefault, 0, bsdName);
 	io_iterator_t it;
@@ -99,10 +101,11 @@ char* getMountPathByBSDName(char* bsdName)
 
 			if (bsdNameChild)
 			{
-				cVal = malloc(CFStringGetLength(bsdNameChild) * sizeof(char));
+				len = CFStringGetLength(bsdNameChild) + 1;
+				cVal = malloc(len * sizeof(char));
 				if (cVal)
 				{
-					if (CFStringGetCString(bsdNameChild, cVal, CFStringGetLength(bsdNameChild) + 1, kCFStringEncodingASCII))
+					if (CFStringGetCString(bsdNameChild, cVal, len, kCFStringEncodingASCII))
 					{
 						found = 1;
 
@@ -198,6 +201,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 	io_name_t classname;
 
 	char* cVal;
+	int len;
 	int result;
 
 	if (IORegistryEntryGetName(device, devicename) != KERN_SUCCESS)
@@ -234,10 +238,11 @@ void get_usb_device_info(io_service_t device, int newdev)
 	{
 		print_cfstringref("\tDevice vendor name:", vendorname);
 
-		cVal = malloc(CFStringGetLength(vendorname) * sizeof(char));
+		len = CFStringGetLength(vendorname) + 1;
+		cVal = malloc(len * sizeof(char));
 		if (cVal)
 		{
-			if (CFStringGetCString(vendorname, cVal, CFStringGetLength(vendorname) + 1, kCFStringEncodingASCII))
+			if (CFStringGetCString(vendorname, cVal, len, kCFStringEncodingASCII))
 			{
 				strcpy(usbDevice.Vendor, cVal);
 				strcpy(usbDevice.VendorDescription, cVal);
@@ -273,10 +278,11 @@ void get_usb_device_info(io_service_t device, int newdev)
 	{
 		print_cfstringref("\tDevice product name:", productname);
 
-		cVal = malloc(CFStringGetLength(productname) * sizeof(char));
+		len = CFStringGetLength(productname) + 1;
+		cVal = malloc(len * sizeof(char));
 		if (cVal)
 		{
-			if (CFStringGetCString(productname, cVal, CFStringGetLength(productname) + 1, kCFStringEncodingASCII))
+			if (CFStringGetCString(productname, cVal, len, kCFStringEncodingASCII))
 			{
 				strcpy(usbDevice.Product, cVal);
 				strcpy(usbDevice.ProductDescription, cVal);
@@ -312,10 +318,11 @@ void get_usb_device_info(io_service_t device, int newdev)
 	{
 		print_cfstringref("\tDevice serial number:", serialnumber);
 
-		cVal = malloc(CFStringGetLength(serialnumber) * sizeof(char));
+		len = CFStringGetLength(serialnumber) + 1;
+		cVal = malloc(len * sizeof(char));
 		if (cVal)
 		{
-			if (CFStringGetCString(serialnumber, cVal, CFStringGetLength(serialnumber) + 1, kCFStringEncodingASCII))
+			if (CFStringGetCString(serialnumber, cVal, len, kCFStringEncodingASCII))
 			{
 				strcpy(usbDevice.SerialNumber, cVal);
 			}
@@ -468,6 +475,8 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 
 	char* cVal;
 	int found = 0;
+	int len;
+	int match = 0;
 	io_name_t devicepath;
 
 	// iterate through USB mass storage devices
@@ -485,10 +494,11 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 
 				if (bsdName)
 				{
-					cVal = malloc(CFStringGetLength(bsdName) * sizeof(char));
+					len = CFStringGetLength(bsdName) + 1;
+					cVal = malloc(len * sizeof(char));
 					if (cVal)
 					{
-						if (CFStringGetCString(bsdName, cVal, CFStringGetLength(bsdName) + 1, kCFStringEncodingASCII))
+						if (CFStringGetCString(bsdName, cVal, len, kCFStringEncodingASCII))
 						{
 							char* mountPath = getMountPathByBSDName(cVal);
 
@@ -503,10 +513,13 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 					}
 				}
 
-				break;
+				match = 1;
 			}
 		}
 		IOObjectRelease(usbInterface);
+
+		if (match)
+			break;
 	}
 	IOObjectRelease(foundIterator);
 
