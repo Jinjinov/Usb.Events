@@ -400,6 +400,8 @@ void configure_and_start_notifier()
 	usb_device_removed(NULL, deviceRemovedIter);
 
 	CFRunLoopRun();
+
+	CFRelease(matchDict);
 }
 
 void deinit_notifier()
@@ -435,6 +437,11 @@ void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback remov
 	init_notifier();
 	configure_and_start_notifier();
 	deinit_notifier();
+}
+
+void StopMacWatcher()
+{
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback)

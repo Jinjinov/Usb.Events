@@ -33,7 +33,7 @@ namespace Usb.Events
 
         #endregion
 
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource? _cancellationTokenSource;
         private bool _isRunning;
 
         public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool includeTTY = false)
@@ -66,6 +66,8 @@ namespace Usb.Events
             {
                 Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
 
+                _cancellationTokenSource = new CancellationTokenSource();
+
                 Task.Run(async () =>
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -75,13 +77,15 @@ namespace Usb.Events
                             GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
-                        await Task.Delay(1000);
+                        await Task.Delay(1000, _cancellationTokenSource.Token);
                     }
                 }, _cancellationTokenSource.Token);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, includeTTY));
+
+                _cancellationTokenSource = new CancellationTokenSource();
 
                 Task.Run(async () => 
                 {
@@ -92,7 +96,7 @@ namespace Usb.Events
                             GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                         }
 
-                        await Task.Delay(1000);
+                        await Task.Delay(1000, _cancellationTokenSource.Token);
                     }
                 }, _cancellationTokenSource.Token);
             }
@@ -180,11 +184,17 @@ namespace Usb.Events
         [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, bool includeTTY);
 
+        [DllImport("UsbEventWatcher.Linux.so", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StopLinuxWatcher();
+
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void GetMacMountPoint(string syspath, MountPointCallback mountPointCallback);
 
         [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
         static extern void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
+
+        [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
+        static extern void StopMacWatcher();
 
         #endregion
 
@@ -642,21 +652,42 @@ namespace Usb.Events
             return devicePath;
         }
 
+        #endregion
+
         public void Dispose()
         {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _volumeChangeEventWatcher?.Stop();
+                _volumeChangeEventWatcher?.Dispose();
+                _volumeChangeEventWatcher = null;
 
-            _volumeChangeEventWatcher?.Stop();
-            _volumeChangeEventWatcher?.Dispose();
+                _USBControllerDeviceCreationEventWatcher?.Stop();
+                _USBControllerDeviceCreationEventWatcher?.Dispose();
+                _USBControllerDeviceCreationEventWatcher = null;
 
-            _USBControllerDeviceCreationEventWatcher?.Stop();
-            _USBControllerDeviceCreationEventWatcher?.Dispose();
+                _USBControllerDeviceDeletionEventWatcher?.Stop();
+                _USBControllerDeviceDeletionEventWatcher?.Dispose();
+                _USBControllerDeviceDeletionEventWatcher = null;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
 
-            _USBControllerDeviceDeletionEventWatcher?.Stop();
-            _USBControllerDeviceDeletionEventWatcher?.Dispose();
+                StopMacWatcher();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+
+                StopLinuxWatcher();
+            }
+
+            _isRunning = false;
         }
-
-        #endregion
     }
 }

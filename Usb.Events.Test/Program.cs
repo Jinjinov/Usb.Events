@@ -7,7 +7,7 @@ namespace Usb.Events.Test
     {
         static void Main(string[] _)
         {
-            using IUsbEventWatcher usbEventWatcher = new UsbEventWatcher(startImmediately: true, addAlreadyPresentDevicesToList: true);
+            IUsbEventWatcher usbEventWatcher = new UsbEventWatcher(startImmediately: true, addAlreadyPresentDevicesToList: true);
 
             foreach (UsbDevice device in usbEventWatcher.UsbDeviceList)
             {
@@ -30,6 +30,12 @@ namespace Usb.Events.Test
                 Console.WriteLine();
             };
 
+            Console.WriteLine("Press Enter to stop watching for USB events");
+            Console.ReadLine();
+
+            usbEventWatcher.Dispose();
+
+            Console.WriteLine("Press Enter to exit");
             Console.ReadLine();
         }
     }

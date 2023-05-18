@@ -28,6 +28,8 @@ UsbDeviceCallback RemovedCallback;
 
 typedef void (*MountPointCallback)(const char* mountPoint);
 
+int runLinuxWatcher = 0;
+
 struct udev* g_udev;
 
 struct udev_device* GetChild(struct udev* udev, struct udev_device* parent, const char* subsystem, const char* devtype)
@@ -218,7 +220,7 @@ void MonitorDevices(struct udev* udev, int includeTTY)
 
     int fd = udev_monitor_get_fd(mon);
 
-    while (1)
+    while (runLinuxWatcher)
     {
         fd_set fds;
         FD_ZERO(&fds);
@@ -268,10 +270,17 @@ extern "C" {
             return;
         }
 
+        runLinuxWatcher = 1;
+
         EnumerateDevices(g_udev, includeTTY);
         MonitorDevices(g_udev, includeTTY);
 
         udev_unref(g_udev);
+    }
+
+    void StopLinuxWatcher()
+    {
+        runLinuxWatcher = 0;
     }
 
     void GetLinuxMountPoint(const char* syspath, MountPointCallback mountPointCallback)
