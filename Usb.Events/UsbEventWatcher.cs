@@ -170,6 +170,9 @@ namespace Usb.Events
 
         private void InsertedCallback(UsbDeviceData usbDevice)
         {
+            if (UsbDeviceList.Any(device => device.DeviceName == usbDevice.DeviceName && device.DeviceSystemPath == usbDevice.DeviceSystemPath))
+                return;
+
             OnDeviceInserted(new UsbDevice(usbDevice));
         }
 
