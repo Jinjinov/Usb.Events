@@ -4,6 +4,7 @@
 #include <mntent.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 typedef struct UsbDeviceData
 {
@@ -29,6 +30,8 @@ UsbDeviceCallback RemovedCallback;
 typedef void (*MountPointCallback)(const char* mountPoint);
 
 int runLinuxWatcher = 0;
+
+int pipefd[2];
 
 struct udev* g_udev;
 
@@ -220,13 +223,27 @@ void MonitorDevices(struct udev* udev, int includeTTY)
 
     int fd = udev_monitor_get_fd(mon);
 
+    // Create the pipe
+    if (pipe(pipefd) == -1) {
+        // Handle pipe creation error
+        perror("Failed to create pipe");
+        return;
+    }
+
+    // Set the read end of the pipe to non-blocking mode
+    int flags = fcntl(pipefd[0], F_GETFL);
+    fcntl(pipefd[0], F_SETFL, flags | O_NONBLOCK);
+
     while (runLinuxWatcher)
     {
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
+        FD_SET(pipefd[0], &fds);
 
-        int ret = select(fd+1, &fds, NULL, NULL, NULL);
+        int maxfd = (fd > pipefd[0]) ? fd : pipefd[0];
+
+        int ret = select(maxfd + 1, &fds, NULL, NULL, NULL);
 
         if (ret <= 0)
         {
@@ -250,7 +267,22 @@ void MonitorDevices(struct udev* udev, int includeTTY)
                 udev_device_unref(dev);
             }
         }
+
+        if (FD_ISSET(pipefd[0], &fds))
+        {
+            // Read from the pipe to clear the signal
+            char buffer[1];
+            read(pipefd[0], buffer, sizeof(buffer));
+            // Exit the loop after receiving the interruption signal
+            break;
+        }
     }
+
+    // Close the pipe file descriptors
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    udev_monitor_unref(mon);
 }
 
 #ifdef __cplusplus
@@ -281,6 +313,10 @@ extern "C" {
     void StopLinuxWatcher()
     {
         runLinuxWatcher = 0;
+
+        // Write to the pipe to interrupt the select call in the main loop
+        char buffer[1] = { 'x' };
+        write(pipefd[1], buffer, sizeof(buffer));
     }
 
     void GetLinuxMountPoint(const char* syspath, MountPointCallback mountPointCallback)
