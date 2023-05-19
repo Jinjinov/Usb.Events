@@ -33,6 +33,13 @@ namespace Usb.Events
 
         #endregion
 
+        #region Linux and Mac fields
+
+        private Task? _watcherTask;
+        private Task? _mountPointTask;
+
+        #endregion
+
         private CancellationTokenSource? _cancellationTokenSource;
         private bool _isRunning;
 
@@ -64,11 +71,11 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
+                _watcherTask = Task.Run(() => StartMacWatcher(InsertedCallback, RemovedCallback));
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                Task.Run(async () =>
+                _mountPointTask = Task.Run(async () =>
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
@@ -83,11 +90,11 @@ namespace Usb.Events
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, includeTTY));
+                _watcherTask = Task.Run(() => StartLinuxWatcher(InsertedCallback, RemovedCallback, includeTTY));
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                Task.Run(async () => 
+                _mountPointTask = Task.Run(async () => 
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
@@ -676,18 +683,64 @@ namespace Usb.Events
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 _cancellationTokenSource?.Cancel();
+
+                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                {
+                    try
+                    {
+                        _mountPointTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
+
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
                 StopMacWatcher();
+
+                if (_watcherTask != null && !_watcherTask.IsCompleted)
+                {
+                    try
+                    {
+                        _watcherTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 _cancellationTokenSource?.Cancel();
+
+                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                {
+                    try
+                    {
+                        _mountPointTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
+
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
                 StopLinuxWatcher();
+
+                if (_watcherTask != null && !_watcherTask.IsCompleted)
+                {
+                    try
+                    {
+                        _watcherTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
 
             _isRunning = false;
