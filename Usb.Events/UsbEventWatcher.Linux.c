@@ -29,7 +29,7 @@ UsbDeviceCallback RemovedCallback;
 
 typedef void (*MountPointCallback)(const char* mountPoint);
 
-int runLinuxWatcher = 0;
+volatile int runLinuxWatcher = 0;
 
 int pipefd[2];
 
