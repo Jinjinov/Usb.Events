@@ -3,29 +3,19 @@
   "configurations": [
     {
       "name": "Run",
-      "type": "cppdbg",
+      "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
-      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "miDebuggerPath": "/usr/bin/lldb"
     },
     {
       "name": "Debug",
-      "type": "cppdbg",
+      "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
-      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "miDebuggerPath": "/usr/bin/lldb"
     }
   ]
 }
