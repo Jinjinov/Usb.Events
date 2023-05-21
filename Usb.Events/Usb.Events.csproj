@@ -44,20 +44,20 @@
 
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
     <Exec Condition="'$(IsMacOS)' == 'true'"
-          WorkingDirectory=".\Mac"
-          Command="gcc -shared UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          WorkingDirectory=".\"
+          Command="gcc -shared ./Mac/UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="'$(IsMacOS)' != 'true'"
-          WorkingDirectory=".\Linux"
-          Command="gcc -shared UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
+          WorkingDirectory=".\"
+          Command="gcc -shared ./Linux/UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
-    <None Include=".\Linux\UsbEventWatcher.Linux.so" Condition="Exists('.\Linux\UsbEventWatcher.Linux.so')">
+    <None Include="UsbEventWatcher.Linux.so" Condition="Exists('UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-x64\native</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include=".\Mac\UsbEventWatcher.Mac.dylib" Condition="Exists('.\Mac\UsbEventWatcher.Mac.dylib')">
+    <None Include="UsbEventWatcher.Mac.dylib" Condition="Exists('UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x64\native</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
