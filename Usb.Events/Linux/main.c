@@ -10,7 +10,7 @@ void RemovedCallback(UsbDeviceData usbDevice)
 
 int main()
 {
-    StartLinuxWatcher(InsertedCallback, RemovedCallback, false);
+    StartLinuxWatcher(InsertedCallback, RemovedCallback, 0);
 
     return 0;
 }
