@@ -1,16 +1,21 @@
 #include "UsbEventWatcher.Linux.h"
+#include <stdio.h>
 
-void InsertedCallback(UsbDeviceData usbDevice)
+void OnInserted(UsbDeviceData usbDevice)
 {
+    printf("Inserted: %s %s \n", usbDevice.DeviceName, usbDevice.DeviceSystemPath);
 }
 
-void RemovedCallback(UsbDeviceData usbDevice)
+void OnRemoved(UsbDeviceData usbDevice)
 {
+    printf("Removed: %s %s \n", usbDevice.DeviceName, usbDevice.DeviceSystemPath);
 }
 
 int main()
 {
-    StartLinuxWatcher(InsertedCallback, RemovedCallback, 0);
+    printf("USB events: \n");
+
+    StartLinuxWatcher(OnInserted, OnRemoved, 0);
 
     return 0;
 }

@@ -1,16 +1,21 @@
 #include "UsbEventWatcher.Mac.h"
+#include <stdio.h>
 
-void InsertedCallback(UsbDeviceData usbDevice)
+void OnInserted(UsbDeviceData usbDevice)
 {
+    printf("Inserted: %s \n", usbDevice.DeviceName);
 }
 
-void RemovedCallback(UsbDeviceData usbDevice)
+void OnRemoved(UsbDeviceData usbDevice)
 {
+    printf("Removed: %s \n", usbDevice.DeviceName);
 }
 
 int main()
 {
-    StartMacWatcher(InsertedCallback, RemovedCallback);
+    printf("USB events: \n");
+
+    StartMacWatcher(OnInserted, OnRemoved);
 
     return 0;
 }

@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include <time.h>
 #include <errno.h>
 #include <libudev.h>
@@ -6,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/select.h>
 
 typedef struct UsbDeviceData
 {
