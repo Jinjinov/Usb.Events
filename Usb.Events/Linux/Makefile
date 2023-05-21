@@ -30,4 +30,4 @@ debug: clean all
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-.PHONY: all clean
+.PHONY: all debug clean
