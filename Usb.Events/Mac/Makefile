@@ -1,6 +1,6 @@
 # Compiler options
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
 FRAMEWORKS = -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
 # Directories
