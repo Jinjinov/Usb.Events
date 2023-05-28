@@ -1,7 +1,7 @@
 # Compiler options
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99
-LDFLAGS = -ludev
+LDFLAGS = -ludev -pthread
 
 # Directories
 SRC_DIR = .

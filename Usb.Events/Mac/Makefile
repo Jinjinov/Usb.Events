@@ -1,7 +1,7 @@
 # Compiler options
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
-FRAMEWORKS = -framework CoreFoundation -framework DiskArbitration -framework IOKit
+FRAMEWORKS = -framework CoreFoundation -framework DiskArbitration -framework IOKit -pthread
 
 # Directories
 SRC_DIR = .
