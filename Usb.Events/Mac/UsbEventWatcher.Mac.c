@@ -394,7 +394,7 @@ void addStopRunLoopSource()
     };
     
     // Create the run loop source
-    stopRunLoopSource = CFRunLoopSourceCreate(NULL, 0, &sourceContext);
+    stopRunLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &sourceContext);
     
     // Add the run loop source to the current run loop
     CFRunLoopAddSource(runLoop, stopRunLoopSource, kCFRunLoopDefaultMode);
