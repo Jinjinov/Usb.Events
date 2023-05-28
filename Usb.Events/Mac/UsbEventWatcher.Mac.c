@@ -364,10 +364,60 @@ void usb_device_removed(void* refcon, io_iterator_t iterator)
 	iterate_usb_devices(iterator, 0);
 }
 
+// Global variable to hold the run loop source
+CFRunLoopSourceRef stopRunLoopSource = NULL;
+
+CFRunLoopRef runLoop;
+
+// Callback function for the run loop source
+void stopRunLoopSourceCallback(void* info)
+{
+    // Stop the run loop when the source is triggered
+    CFRunLoopStop(runLoop);
+}
+
+// Function to add the stop run loop source
+void addStopRunLoopSource()
+{
+    // Create a custom context for the run loop source
+    CFRunLoopSourceContext sourceContext = {
+        .version = 0,
+        .info = NULL,
+        .retain = NULL,
+        .release = NULL,
+        .copyDescription = NULL,
+        .equal = NULL,
+        .hash = NULL,
+        .schedule = NULL,
+        .cancel = NULL,
+        .perform = stopRunLoopSourceCallback
+    };
+    
+    // Create the run loop source
+    stopRunLoopSource = CFRunLoopSourceCreate(NULL, 0, &sourceContext);
+    
+    // Add the run loop source to the current run loop
+    CFRunLoopAddSource(runLoop, stopRunLoopSource, kCFRunLoopDefaultMode);
+}
+
+// Function to remove the stop run loop source
+void removeStopRunLoopSource()
+{
+    if (stopRunLoopSource != NULL)
+    {
+        // Remove the run loop source from the current run loop
+        CFRunLoopRemoveSource(runLoop, stopRunLoopSource, kCFRunLoopDefaultMode);
+        
+        // Release the run loop source
+        CFRelease(stopRunLoopSource);
+        stopRunLoopSource = NULL;
+    }
+}
+
 void init_notifier()
 {
 	notificationPort = IONotificationPortCreate(kIOMainPortDefault);
-	CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
+	CFRunLoopAddSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	printf("init_notifier ok\n");
 }
 
@@ -406,14 +456,21 @@ void configure_and_start_notifier()
 
 	usb_device_removed(NULL, deviceRemovedIter);
 
-	CFRunLoopRun();
+	// Add the stop run loop source
+    addStopRunLoopSource();
+    
+    // Start the run loop
+    CFRunLoopRun();
+    
+    // Remove the stop run loop source
+    removeStopRunLoopSource();
 
 	CFRelease(matchDict);
 }
 
 void deinit_notifier()
 {
-	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
+	CFRunLoopRemoveSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	IONotificationPortDestroy(notificationPort);
 	printf("deinit_notifier ok\n");
 }
@@ -421,7 +478,7 @@ void deinit_notifier()
 void signal_handler(int signum)
 {
 	printf("\ngot signal, signnum=%i  stopping current RunLoop\n", signum);
-	CFRunLoopStop(CFRunLoopGetCurrent());
+	CFRunLoopStop(runLoop);
 }
 
 void init_signal_handler()
@@ -440,6 +497,8 @@ void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback remov
 	InsertedCallback = insertedCallback;
 	RemovedCallback = removedCallback;
 
+	runLoop = CFRunLoopGetCurrent();
+
 	//init_signal_handler();
 	init_notifier();
 	configure_and_start_notifier();
@@ -448,7 +507,14 @@ void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback remov
 
 void StopMacWatcher()
 {
-	CFRunLoopStop(CFRunLoopGetCurrent());
+	if (stopRunLoopSource != NULL)
+    {
+        // Signal the run loop source to stop the run loop
+        CFRunLoopSourceSignal(stopRunLoopSource);
+        
+        // Wake up the run loop to process the signal immediately
+        CFRunLoopWakeUp(runLoop);
+    }
 }
 
 void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback)
