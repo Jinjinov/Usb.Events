@@ -1,6 +1,6 @@
 # Compiler options
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
 LDFLAGS = -ludev -pthread
 
 # Directories
