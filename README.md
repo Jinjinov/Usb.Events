@@ -43,12 +43,30 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 ## Constructor parameters:
 
 ```
-UsbEventWatcher(bool startImmediately = true, bool includeTTY = false)
+UsbEventWatcher(
+    bool startImmediately = true, 
+    bool addAlreadyPresentDevicesToList = false, 
+    bool usePnPEntity = false, 
+    bool includeTTY = false)
 ```
 
-- Set `startImmediately` to `false` if you don't want to start immediately.  
-Then call the `Start(bool includeTTY = false)` method.
+- Set `startImmediately` to `false` if you don't want to start immediately, then call `Start(bool includeTTY = false)`.
+- Set `addAlreadyPresentDevicesToList` to `true` if you want `UsbDeviceList` to include devices that were already present.
+- Set `usePnPEntity` to `true` if you want the watcher to query `Win32_PnPEntity` instead of `Win32_USBControllerDevice`.
 - Set `includeTTY` to `true` if you want to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
+
+### Using `Win32_PnPEntity` vs `Win32_USBControllerDevice`
+
+- `Win32_PnPEntity`
+    - PRO: works for all devices
+    - CON: is CPU intensive
+    - CON: uses only 2 methods to find `MountedDirectoryPath` for storage devices (this should still work for most devices)
+- `Win32_USBControllerDevice`
+    - PRO: uses 3 methods to find `MountedDirectoryPath` for storage devices
+    - PRO: in not CPU intensive
+    - CON: for some devices it can stop reporting `UsbDeviceAdded` event after the device is added and removed a few times
+
+Using `Win32_USBControllerDevice` is usually the better option.
 
 ## Example:
 
