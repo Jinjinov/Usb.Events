@@ -737,21 +737,21 @@ namespace Usb.Events
             {
                 _cancellationTokenSource?.Cancel();
 
-                //if (_mountPointTask != null && !_mountPointTask.IsCompleted)
-                //{
-                //    try
-                //    {
-                //        _mountPointTask.GetAwaiter().GetResult();
-                //    }
-                //    catch
-                //    {
-                //    }
-                //}
+                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                {
+                    try
+                    {
+                        _mountPointTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
 
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
-                StopMacWatcher();
+                //StopMacWatcher();
 
                 //if (_watcherTask != null && !_watcherTask.IsCompleted)
                 //{
