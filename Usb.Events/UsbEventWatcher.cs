@@ -768,32 +768,32 @@ namespace Usb.Events
             {
                 _cancellationTokenSource?.Cancel();
 
-                //if (_mountPointTask != null && !_mountPointTask.IsCompleted)
-                //{
-                //    try
-                //    {
-                //        _mountPointTask.GetAwaiter().GetResult();
-                //    }
-                //    catch
-                //    {
-                //    }
-                //}
+                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                {
+                    try
+                    {
+                        _mountPointTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
 
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
                 StopLinuxWatcher();
 
-                //if (_watcherTask != null && !_watcherTask.IsCompleted)
-                //{
-                //    try
-                //    {
-                //        _watcherTask.GetAwaiter().GetResult();
-                //    }
-                //    catch
-                //    {
-                //    }
-                //}
+                if (_watcherTask != null && !_watcherTask.IsCompleted)
+                {
+                    try
+                    {
+                        _watcherTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
 
             _isRunning = false;
