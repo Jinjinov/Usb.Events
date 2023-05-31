@@ -28,8 +28,8 @@ namespace Usb.Events
 
         private ManagementEventWatcher? _volumeChangeEventWatcher;
 
-        private ManagementEventWatcher? _creationEventWatcher;
-        private ManagementEventWatcher? _deletionEventWatcher;
+        private ManagementEventWatcher? _instanceCreationEventWatcher;
+        private ManagementEventWatcher? _instanceDeletionEventWatcher;
 
         #endregion
 
@@ -284,21 +284,32 @@ namespace Usb.Events
             _volumeChangeEventWatcher.Query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2 or EventType = 3");
             _volumeChangeEventWatcher.Start();
 
-            _creationEventWatcher = new ManagementEventWatcher();
-            _creationEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceCreationEventWatcher_EventArrived);
-            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
-            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
-            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
-            _creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
-            _creationEventWatcher.Start();
+            _instanceCreationEventWatcher = new ManagementEventWatcher();
+            _instanceDeletionEventWatcher = new ManagementEventWatcher();
 
-            _deletionEventWatcher = new ManagementEventWatcher();
-            _deletionEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceDeletionEventWatcher_EventArrived);
-            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
-            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
-            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
-            _deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
-            _deletionEventWatcher.Start();
+            //_instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
+            //_instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
+
+            //_instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
+            //_instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
+
+            if (usePnPEntity)
+            {
+                _instanceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(PnPEntityCreationEventWatcher_EventArrived);
+                _instanceDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(PnPEntityDeletionEventWatcher_EventArrived);
+                _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
+                _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
+            }
+            else
+            {
+                _instanceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceCreationEventWatcher_EventArrived);
+                _instanceDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceDeletionEventWatcher_EventArrived);
+                _instanceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
+                _instanceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
+            }
+
+            _instanceCreationEventWatcher.Start();
+            _instanceDeletionEventWatcher.Start();
         }
 
         private void VolumeChangeEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -346,6 +357,48 @@ namespace Usb.Events
 
             System.Diagnostics.Debug.WriteLine(string.Empty);
 #endif
+        }
+
+        private void PnPEntityCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
+        {
+            ManagementBaseObject Win32_PnPEntity = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+
+            string PnPEntityDeviceID = Win32_PnPEntity["DeviceID"].ToString();
+
+            UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
+
+            if (usbDevice != null)
+            {
+                string diskDriveDeviceID = GetPnPEntityDataAndDiskDriveDeviceID(usbDevice);
+
+                GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID: null, maxAttempts: 1);
+
+                usbDevice.IsEjected = false;
+                usbDevice.IsMounted = true;
+
+                OnDeviceInserted(usbDevice);
+            }
+        }
+
+        private void PnPEntityDeletionEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
+        {
+            ManagementBaseObject Win32_PnPEntity = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+
+            string PnPEntityDeviceID = Win32_PnPEntity["DeviceID"].ToString();
+
+            UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
+
+            if (usbDevice != null)
+            {
+                string diskDriveDeviceID = GetPnPEntityDataAndDiskDriveDeviceID(usbDevice);
+
+                GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID: null, maxAttempts: 1);
+
+                usbDevice.IsEjected = true;
+                usbDevice.IsMounted = false;
+
+                OnDeviceRemoved(usbDevice);
+            }
         }
 
         private void USBControllerDeviceCreationEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -672,13 +725,13 @@ namespace Usb.Events
                 _volumeChangeEventWatcher?.Dispose();
                 _volumeChangeEventWatcher = null;
 
-                _creationEventWatcher?.Stop();
-                _creationEventWatcher?.Dispose();
-                _creationEventWatcher = null;
+                _instanceCreationEventWatcher?.Stop();
+                _instanceCreationEventWatcher?.Dispose();
+                _instanceCreationEventWatcher = null;
 
-                _deletionEventWatcher?.Stop();
-                _deletionEventWatcher?.Dispose();
-                _deletionEventWatcher = null;
+                _instanceDeletionEventWatcher?.Stop();
+                _instanceDeletionEventWatcher?.Dispose();
+                _instanceDeletionEventWatcher = null;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {

@@ -7,7 +7,7 @@ namespace Usb.Events.Test
     {
         static void Main(string[] _)
         {
-            IUsbEventWatcher usbEventWatcher = new UsbEventWatcher(startImmediately: true, addAlreadyPresentDevicesToList: true);
+            IUsbEventWatcher usbEventWatcher = new UsbEventWatcher(startImmediately: true, addAlreadyPresentDevicesToList: true, usePnPEntity: true);
 
             foreach (UsbDevice device in usbEventWatcher.UsbDeviceList)
             {
