@@ -28,8 +28,8 @@ namespace Usb.Events
 
         private ManagementEventWatcher? _volumeChangeEventWatcher;
 
-        private ManagementEventWatcher? _USBControllerDeviceCreationEventWatcher;
-        private ManagementEventWatcher? _USBControllerDeviceDeletionEventWatcher;
+        private ManagementEventWatcher? _creationEventWatcher;
+        private ManagementEventWatcher? _deletionEventWatcher;
 
         #endregion
 
@@ -43,17 +43,17 @@ namespace Usb.Events
         private CancellationTokenSource? _cancellationTokenSource;
         private bool _isRunning;
 
-        public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool includeTTY = false)
+        public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
         {
             if (startImmediately)
             {
-                Start(addAlreadyPresentDevicesToList, includeTTY);
+                Start(addAlreadyPresentDevicesToList, usePnPEntity, includeTTY);
             }
         }
 
         #region Methods
 
-        public void Start(bool addAlreadyPresentDevicesToList = false, bool includeTTY = false)
+        public void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
         {
             if (_isRunning)
                 return;
@@ -67,7 +67,7 @@ namespace Usb.Events
                     AddAlreadyPresentDevicesToList();
                 }
 
-                StartWindowsWatcher();
+                StartWindowsWatcher(usePnPEntity);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -250,13 +250,13 @@ namespace Usb.Events
 
             foreach (ManagementObject USBControllerDevice in Win32_USBControllerDevice.Get())
             {
-                (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(USBControllerDevice);
+                (string USBControllerDeviceID, string PnPEntityDeviceID) = GetDeviceID(USBControllerDevice);
 
                 UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
 
                 if (usbDevice != null)
                 {
-                    string diskDriveDeviceID = GetData(usbDevice);
+                    string diskDriveDeviceID = GetPnPEntityDataAndDiskDriveDeviceID(usbDevice);
 
                     GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID, maxAttempts: 1);
 
@@ -268,7 +268,7 @@ namespace Usb.Events
             }
         }
 
-        private void StartWindowsWatcher()
+        private void StartWindowsWatcher(bool usePnPEntity = false)
         {
             UsbDrivePathList = new List<string>(DriveInfo.GetDrives()
                 .Where(driveInfo => driveInfo.DriveType == DriveType.Removable && driveInfo.IsReady)
@@ -284,21 +284,21 @@ namespace Usb.Events
             _volumeChangeEventWatcher.Query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2 or EventType = 3");
             _volumeChangeEventWatcher.Start();
 
-            _USBControllerDeviceCreationEventWatcher = new ManagementEventWatcher();
-            _USBControllerDeviceCreationEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceCreationEventWatcher_EventArrived);
-            //_USBControllerDeviceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
-            //_USBControllerDeviceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
-            //_USBControllerDeviceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
-            _USBControllerDeviceCreationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
-            _USBControllerDeviceCreationEventWatcher.Start();
+            _creationEventWatcher = new ManagementEventWatcher();
+            _creationEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceCreationEventWatcher_EventArrived);
+            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
+            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
+            //_creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
+            _creationEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
+            _creationEventWatcher.Start();
 
-            _USBControllerDeviceDeletionEventWatcher = new ManagementEventWatcher();
-            _USBControllerDeviceDeletionEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceDeletionEventWatcher_EventArrived);
-            //_USBControllerDeviceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
-            //_USBControllerDeviceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
-            //_USBControllerDeviceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
-            _USBControllerDeviceDeletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
-            _USBControllerDeviceDeletionEventWatcher.Start();
+            _deletionEventWatcher = new ManagementEventWatcher();
+            _deletionEventWatcher.EventArrived += new EventArrivedEventHandler(USBControllerDeviceDeletionEventWatcher_EventArrived);
+            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"); - licence key not detected, USB disk detected
+            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'"); // high CPU load
+            //_deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBController'"); - nothing detected
+            _deletionEventWatcher.Query = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBControllerDevice'"); // -licence key detected 2x, no info
+            _deletionEventWatcher.Start();
         }
 
         private void VolumeChangeEventWatcher_EventArrived(object sender, EventArrivedEventArgs e)
@@ -352,9 +352,9 @@ namespace Usb.Events
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(Win32_USBControllerDevice);
+            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetDeviceID(Win32_USBControllerDevice);
 
-            UsbDevice? usbDevice = GetUsbDevice(USBControllerDeviceID, PnPEntityDeviceID);
+            UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID, USBControllerDeviceID);
 
             if (usbDevice != null)
             {
@@ -369,9 +369,9 @@ namespace Usb.Events
         {
             ManagementBaseObject Win32_USBControllerDevice = (ManagementBaseObject)e.NewEvent["TargetInstance"];
 
-            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetUSBControllerDeviceID(Win32_USBControllerDevice);
+            (string USBControllerDeviceID, string PnPEntityDeviceID) = GetDeviceID(Win32_USBControllerDevice);
 
-            UsbDevice? usbDevice = GetUsbDevice(USBControllerDeviceID, PnPEntityDeviceID);
+            UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID, USBControllerDeviceID);
 
             if (usbDevice != null)
             {
@@ -382,7 +382,7 @@ namespace Usb.Events
             }
         }
 
-        private static (string USBControllerDeviceID, string PnPEntityDeviceID) GetUSBControllerDeviceID(ManagementBaseObject Win32_USBControllerDevice)
+        private static (string USBControllerDeviceID, string PnPEntityDeviceID) GetDeviceID(ManagementBaseObject Win32_USBControllerDevice)
         {
             DebugOutput(Win32_USBControllerDevice);
 
@@ -438,13 +438,13 @@ namespace Usb.Events
             return usbDevice;
         }
 
-        private static UsbDevice? GetUsbDevice(string USBControllerDeviceID, string PnPEntityDeviceID)
+        private static UsbDevice? GetUsbDevice(string PnPEntityDeviceID, string? USBControllerDeviceID = null)
         {
             UsbDevice? usbDevice = GetUsbDevice(PnPEntityDeviceID);
 
             if (usbDevice != null)
             {
-                string diskDriveDeviceID = GetData(usbDevice);
+                string diskDriveDeviceID = GetPnPEntityDataAndDiskDriveDeviceID(usbDevice);
 
                 GetMountedDirectoryPath(usbDevice, diskDriveDeviceID, USBControllerDeviceID);
             }
@@ -452,7 +452,7 @@ namespace Usb.Events
             return usbDevice;
         }
 
-        private static string GetData(UsbDevice usbDevice)
+        private static string GetPnPEntityDataAndDiskDriveDeviceID(UsbDevice usbDevice)
         {
             const string WindowsPortableDevicesClassGuid = "{eec5ad98-8080-425f-922a-dabf3de3f69a}";
 
@@ -462,7 +462,7 @@ namespace Usb.Events
             using ManagementObjectSearcher Win32_PnPEntity = new ManagementObjectSearcher($"SELECT Caption, ClassGuid, Description, DeviceID, Manufacturer FROM Win32_PnPEntity WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 #endif
 
-            bool parseData = true;
+            bool getPnPEntityData = true;
 
             string diskDriveDeviceID = string.Empty;
 
@@ -482,7 +482,7 @@ namespace Usb.Events
                     diskDriveDeviceID = diskDrive["DeviceID"].ToString();
                 }
 
-                if (parseData)
+                if (getPnPEntityData)
                 {
                     usbDevice.DeviceName = entity["Caption"]?.ToString()?.Trim() ?? string.Empty;
                     usbDevice.Product = entity["Description"]?.ToString()?.Trim() ?? string.Empty;
@@ -497,7 +497,7 @@ namespace Usb.Events
                 // but USB flash drives have several ManagementObject-s and only WindowsPortableDevices has useful info
                 if (ClassGuid == WindowsPortableDevicesClassGuid)
                 {
-                    parseData = false;
+                    getPnPEntityData = false;
                 }
 
                 /*
@@ -536,7 +536,7 @@ namespace Usb.Events
             return diskDriveDeviceID;
         }
 
-        private static void GetMountedDirectoryPath(UsbDevice usbDevice, string diskDriveDeviceID, string USBControllerDeviceID, int maxAttempts = 1000)
+        private static void GetMountedDirectoryPath(UsbDevice usbDevice, string diskDriveDeviceID, string? USBControllerDeviceID = null, int maxAttempts = 1000)
         {
             using ManagementObjectSearcher Win32_USBHub = new ManagementObjectSearcher($"SELECT * FROM Win32_USBHub WHERE DeviceID LIKE '%{usbDevice.SerialNumber}%'");
 
@@ -557,7 +557,7 @@ namespace Usb.Events
                         usbDevice.MountedDirectoryPath = GetDiskDrivePath(diskDriveDeviceID);
                     }
 
-                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath))
+                    if (string.IsNullOrEmpty(usbDevice.MountedDirectoryPath) && USBControllerDeviceID != null)
                     {
                         // https://stackoverflow.com/questions/20143264/find-windows-drive-letter-of-a-removable-disk-from-usb-vid-pid
 
@@ -672,75 +672,75 @@ namespace Usb.Events
                 _volumeChangeEventWatcher?.Dispose();
                 _volumeChangeEventWatcher = null;
 
-                _USBControllerDeviceCreationEventWatcher?.Stop();
-                _USBControllerDeviceCreationEventWatcher?.Dispose();
-                _USBControllerDeviceCreationEventWatcher = null;
+                _creationEventWatcher?.Stop();
+                _creationEventWatcher?.Dispose();
+                _creationEventWatcher = null;
 
-                _USBControllerDeviceDeletionEventWatcher?.Stop();
-                _USBControllerDeviceDeletionEventWatcher?.Dispose();
-                _USBControllerDeviceDeletionEventWatcher = null;
+                _deletionEventWatcher?.Stop();
+                _deletionEventWatcher?.Dispose();
+                _deletionEventWatcher = null;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 _cancellationTokenSource?.Cancel();
 
-                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
-                {
-                    try
-                    {
-                        _mountPointTask.GetAwaiter().GetResult();
-                    }
-                    catch
-                    {
-                    }
-                }
+                //if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                //{
+                //    try
+                //    {
+                //        _mountPointTask.GetAwaiter().GetResult();
+                //    }
+                //    catch
+                //    {
+                //    }
+                //}
 
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
                 StopMacWatcher();
 
-                if (_watcherTask != null && !_watcherTask.IsCompleted)
-                {
-                    try
-                    {
-                        _watcherTask.GetAwaiter().GetResult();
-                    }
-                    catch
-                    {
-                    }
-                }
+                //if (_watcherTask != null && !_watcherTask.IsCompleted)
+                //{
+                //    try
+                //    {
+                //        _watcherTask.GetAwaiter().GetResult();
+                //    }
+                //    catch
+                //    {
+                //    }
+                //}
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 _cancellationTokenSource?.Cancel();
 
-                if (_mountPointTask != null && !_mountPointTask.IsCompleted)
-                {
-                    try
-                    {
-                        _mountPointTask.GetAwaiter().GetResult();
-                    }
-                    catch
-                    {
-                    }
-                }
+                //if (_mountPointTask != null && !_mountPointTask.IsCompleted)
+                //{
+                //    try
+                //    {
+                //        _mountPointTask.GetAwaiter().GetResult();
+                //    }
+                //    catch
+                //    {
+                //    }
+                //}
 
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
                 StopLinuxWatcher();
 
-                if (_watcherTask != null && !_watcherTask.IsCompleted)
-                {
-                    try
-                    {
-                        _watcherTask.GetAwaiter().GetResult();
-                    }
-                    catch
-                    {
-                    }
-                }
+                //if (_watcherTask != null && !_watcherTask.IsCompleted)
+                //{
+                //    try
+                //    {
+                //        _watcherTask.GetAwaiter().GetResult();
+                //    }
+                //    catch
+                //    {
+                //    }
+                //}
             }
 
             _isRunning = false;
