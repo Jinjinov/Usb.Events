@@ -43,12 +43,18 @@
   </ItemGroup>
 
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+      <Flags>-shared -g</Flags>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+      <Flags>-shared</Flags>
+    </PropertyGroup>
     <Exec Condition="'$(IsMacOS)' == 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared ./Mac/UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc $(Flags) ./Mac/UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="'$(IsMacOS)' != 'true'"
           WorkingDirectory=".\"
-          Command="gcc -shared ./Linux/UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) ./Linux/UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
