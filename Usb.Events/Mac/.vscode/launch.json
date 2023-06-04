@@ -16,6 +16,14 @@
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
       "cwd": "${workspaceFolder}",
+    },
+    {
+      "name": "Debug UsbEventWatcher.Mac.dylib",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/../UsbEventWatcher.Mac.dylib",
+      "args": [],
+      "cwd": "${workspaceFolder}",
     }
   ]
 }
