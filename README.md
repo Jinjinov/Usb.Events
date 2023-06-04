@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.1.1.0" />
+            <PackageReference Include="Usb.Events" Version="10.1.1.1" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -96,6 +96,8 @@ Using `Win32_USBControllerDevice` is usually the better option.
 
 ## Version history:
 
+- 10.1.1.1:
+    - Fixed `Dispose()` to exit native monitor loop in macOS
 - 10.1.1.0:
     - Fixed `Dispose()` to exit native monitor loop in Linux
     - Added `bool usePnPEntity` to use `Win32_PnPEntity` in Windows
