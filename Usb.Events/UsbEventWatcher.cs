@@ -751,18 +751,18 @@ namespace Usb.Events
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
 
-                //StopMacWatcher();
+                StopMacWatcher();
 
-                //if (_watcherTask != null && !_watcherTask.IsCompleted)
-                //{
-                //    try
-                //    {
-                //        _watcherTask.GetAwaiter().GetResult();
-                //    }
-                //    catch
-                //    {
-                //    }
-                //}
+                if (_watcherTask != null && !_watcherTask.IsCompleted)
+                {
+                    try
+                    {
+                        _watcherTask.GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {

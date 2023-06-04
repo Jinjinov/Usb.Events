@@ -421,6 +421,8 @@ void init_notifier(void)
 	printf("init_notifier ok\n");
 }
 
+// https://sudonull.com/post/141779-Working-with-USB-devices-in-a-C-program-on-MacOS-X
+
 void configure_and_start_notifier(void)
 {
 	printf("Starting notifier\n");
@@ -464,8 +466,6 @@ void configure_and_start_notifier(void)
     
     // Remove the stop run loop source
     removeStopRunLoopSource();
-
-	CFRelease(matchDict);
 }
 
 void deinit_notifier(void)
