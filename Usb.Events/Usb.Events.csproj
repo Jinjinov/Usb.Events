@@ -44,7 +44,7 @@
 
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-      <Flags>-shared -g</Flags>
+      <Flags>-shared -g -D DEBUG</Flags>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
       <Flags>-shared</Flags>

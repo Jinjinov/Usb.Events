@@ -39,8 +39,19 @@ char buffer[1024];
 
 static IONotificationPortRef notificationPort;
 
+void debug_print(const char* format, ...)
+{
+#ifdef DEBUG
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+#endif
+}
+
 void print_cfstringref(const char* prefix, CFStringRef cfVal)
 {
+#ifdef DEBUG
 	long len = CFStringGetLength(cfVal) + 1;
 	char* cVal = malloc(len * sizeof(char));
 
@@ -55,16 +66,19 @@ void print_cfstringref(const char* prefix, CFStringRef cfVal)
 	}
 
 	free(cVal);
+#endif
 }
 
 void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 {
+#ifdef DEBUG
 	int result;
 
 	if (CFNumberGetValue(cfVal, kCFNumberSInt32Type, &result))
 	{
 		printf("%s %i\n", prefix, result);
 	}
+#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -212,20 +226,20 @@ void get_usb_device_info(io_service_t device, int newdev)
 
 	usbDevice = empty;
 
-	printf("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
+	debug_print("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
 
 	strcpy(usbDevice.DeviceName, devicename);
 
 	if (IORegistryEntryGetPath(device, kIOServicePlane, devicepath) == KERN_SUCCESS)
 	{
-		printf("\tDevice path: %s\n", devicepath);
+		debug_print("\tDevice path: %s\n", devicepath);
 
 		strcpy(usbDevice.DeviceSystemPath, devicepath);
 	}
 
 	if (IOObjectGetClass(device, classname) == KERN_SUCCESS)
 	{
-		printf("\tDevice class name: %s\n", classname);
+		debug_print("\tDevice class name: %s\n", classname);
 	}
 
 	CFStringRef vendorname = (CFStringRef)IORegistryEntrySearchCFProperty(device
@@ -331,7 +345,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 		}
 	}
 
-	printf("\n");
+	debug_print("\n");
 
 	if (newdev)
 	{
@@ -418,14 +432,16 @@ void init_notifier(void)
 {
 	notificationPort = IONotificationPortCreate(kIOMainPortDefault);
 	CFRunLoopAddSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
-	printf("init_notifier ok\n");
+
+	debug_print("init_notifier ok\n");
 }
 
 // https://sudonull.com/post/141779-Working-with-USB-devices-in-a-C-program-on-MacOS-X
 
 void configure_and_start_notifier(void)
 {
-	printf("Starting notifier\n");
+	debug_print("Starting notifier\n");
+
 	CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
 
 	if (!matchDict)
@@ -472,12 +488,14 @@ void deinit_notifier(void)
 {
 	CFRunLoopRemoveSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	IONotificationPortDestroy(notificationPort);
-	printf("deinit_notifier ok\n");
+
+	debug_print("deinit_notifier ok\n");
 }
 
 void signal_handler(int signum)
 {
-	printf("\ngot signal, signnum=%i  stopping current RunLoop\n", signum);
+	debug_print("\ngot signal, signnum=%i  stopping current RunLoop\n", signum);
+
 	CFRunLoopStop(runLoop);
 }
 
