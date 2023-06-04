@@ -41,7 +41,7 @@ static IONotificationPortRef notificationPort;
 
 void print_cfstringref(const char* prefix, CFStringRef cfVal)
 {
-	int len = CFStringGetLength(cfVal) + 1;
+	long len = CFStringGetLength(cfVal) + 1;
 	char* cVal = malloc(len * sizeof(char));
 
 	if (!cVal)
@@ -79,7 +79,7 @@ char* getMountPathByBSDName(char* bsdName)
 
 	char* cVal;
 	int found = 0;
-	int len;
+	long len;
 
 	CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMainPortDefault, 0, bsdName);
 	io_iterator_t it;
@@ -201,7 +201,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 	io_name_t classname;
 
 	char* cVal;
-	int len;
+	long len;
 	int result;
 
 	if (IORegistryEntryGetName(device, devicename) != KERN_SUCCESS)
@@ -377,7 +377,7 @@ void stopRunLoopSourceCallback(void* info)
 }
 
 // Function to add the stop run loop source
-void addStopRunLoopSource()
+void addStopRunLoopSource(void)
 {
     // Create a custom context for the run loop source
     CFRunLoopSourceContext sourceContext = {
@@ -401,7 +401,7 @@ void addStopRunLoopSource()
 }
 
 // Function to remove the stop run loop source
-void removeStopRunLoopSource()
+void removeStopRunLoopSource(void)
 {
     if (stopRunLoopSource != NULL)
     {
@@ -414,14 +414,14 @@ void removeStopRunLoopSource()
     }
 }
 
-void init_notifier()
+void init_notifier(void)
 {
 	notificationPort = IONotificationPortCreate(kIOMainPortDefault);
 	CFRunLoopAddSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	printf("init_notifier ok\n");
 }
 
-void configure_and_start_notifier()
+void configure_and_start_notifier(void)
 {
 	printf("Starting notifier\n");
 	CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
@@ -468,7 +468,7 @@ void configure_and_start_notifier()
 	CFRelease(matchDict);
 }
 
-void deinit_notifier()
+void deinit_notifier(void)
 {
 	CFRunLoopRemoveSource(runLoop, IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopDefaultMode);
 	IONotificationPortDestroy(notificationPort);
@@ -481,7 +481,7 @@ void signal_handler(int signum)
 	CFRunLoopStop(runLoop);
 }
 
-void init_signal_handler()
+void init_signal_handler(void)
 {
 	signal(SIGINT, signal_handler);
 	signal(SIGQUIT, signal_handler);
@@ -505,7 +505,7 @@ void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback remov
 	deinit_notifier();
 }
 
-void StopMacWatcher()
+void StopMacWatcher(void)
 {
 	if (stopRunLoopSource != NULL)
     {
@@ -541,7 +541,7 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 
 	char* cVal;
 	int found = 0;
-	int len;
+	long len;
 	int match = 0;
 	io_name_t devicepath;
 
