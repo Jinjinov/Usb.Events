@@ -5,6 +5,12 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/usb/IOUSBLib.h>
 
+#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+#if __MAC_OS_X_VERSION_MAX_ALLOWED <= 120100
+#define kIOMainPortDefault kIOMasterPortDefault
+#endif
+#endif
+
 #include <DiskArbitration/DiskArbitration.h>
 #include <DiskArbitration/DASession.h>
 
