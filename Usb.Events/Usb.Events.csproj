@@ -30,13 +30,6 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-  
-  <PropertyGroup>
-    <IsMacOS>$([MSBuild]::IsOsPlatform('OSX'))</IsMacOS>
-    <NativeAssetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'" >win-x64</NativeAssetRuntimeIdentifier>
-    <NativeAssetRuntimeIdentifier Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'" >linux-x64</NativeAssetRuntimeIdentifier>
-    <NativeAssetRuntimeIdentifier Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' == 'true'" >osx-x64</NativeAssetRuntimeIdentifier>
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Management" Version="7.0.0" />
@@ -46,13 +39,13 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
       <Flags>-shared -g -D DEBUG</Flags>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
       <Flags>-shared</Flags>
     </PropertyGroup>
-    <Exec Condition="'$(IsMacOS)' == 'true'"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
           WorkingDirectory=".\"
           Command="gcc $(Flags) ./Mac/UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
-    <Exec Condition="'$(IsMacOS)' != 'true'"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
           Command="gcc $(Flags) ./Linux/UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
