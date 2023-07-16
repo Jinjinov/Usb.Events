@@ -1,15 +1,23 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Launch (console) - Debug",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build-debug",
             "program": "${workspaceFolder}/Usb.Events.Test/bin/Debug/net7.0/Usb.Events.Test.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Usb.Events.Test",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Launch (console) - Release",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-release",
+            "program": "${workspaceFolder}/Usb.Events.Test/bin/Release/net7.0/Usb.Events.Test.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Usb.Events.Test",
             "console": "integratedTerminal",
