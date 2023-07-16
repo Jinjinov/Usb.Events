@@ -82,9 +82,9 @@ gcc with:
 ```
 sudo apt-get install build-essential
 ```
-udev with:
+32 bit and 64 bit udev with:
 ```
-sudo apt-get install libudev-dev
+sudo apt-get install libudev-dev:i386 libudev-dev:amd64
 ```
 support for compiling 32 bit on 64 bit Linux:
 ```
