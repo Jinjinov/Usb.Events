@@ -76,15 +76,19 @@ Using `Win32_USBControllerDevice` is usually the better option.
 
 `Usb.Events.csproj` uses `gcc` to build `UsbEventWatcher.Mac.dylib` from `UsbEventWatcher.Mac.c` when run on macOS and to build `UsbEventWatcher.Linux.so` from `UsbEventWatcher.Linux.c` when run on Linux.
 
+On Debian/Ubuntu based Linux distros you need to install:
+
+gcc with:
 ```
-  <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
-    <Exec Condition="'$(IsMacOS)' == 'true'"
-          WorkingDirectory=".\"
-          Command="gcc -shared ./Mac/UsbEventWatcher.Mac.c -o UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
-    <Exec Condition="'$(IsMacOS)' != 'true'"
-          WorkingDirectory=".\"
-          Command="gcc -shared ./Linux/UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC" />
-  </Target>
+sudo apt-get install build-essential
+```
+udev with:
+```
+sudo apt-get install libudev-dev
+```
+support for compiling 32 bit on 64 bit Linux:
+```
+sudo apt-get install gcc-multilib
 ```
 
 `Usb.Events.dll` expects to find `UsbEventWatcher.Linux.so` and `UsbEventWatcher.Mac.dylib` in the working directory when it runs, so make sure to build the project on Linux and Mac before building the NuGet package on Windows.

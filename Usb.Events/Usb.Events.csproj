@@ -44,16 +44,16 @@
     </PropertyGroup>
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="mkdir x86; gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="mkdir x86; gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/UsbEventWatcher.Linux.so -ludev -fPIC" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="mkdir x64; gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="mkdir x64; gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
