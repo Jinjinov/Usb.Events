@@ -61,21 +61,25 @@
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-x86\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
     </None>
     <None Include="./x86/UsbEventWatcher.Mac.dylib" Condition="Exists('./x86/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x86\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
     <None Include="./x64/UsbEventWatcher.Linux.so" Condition="Exists('./x64/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-x64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
     </None>
     <None Include="./x64/UsbEventWatcher.Mac.dylib" Condition="Exists('./x64/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
   </ItemGroup>
   
