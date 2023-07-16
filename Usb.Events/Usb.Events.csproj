@@ -43,7 +43,12 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
       <Flags>-shared</Flags>
     </PropertyGroup>
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+
+    <Exec Command="uname -m" ConsoleToMSBuild="true">
+        <Output TaskParameter="ConsoleOutput" PropertyName="Architecture" />
+    </Exec>
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == 'x86_64' Or '$(Architecture)' == 'i386')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
