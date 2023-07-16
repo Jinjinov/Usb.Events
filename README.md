@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="10.1.1.1" />
+            <PackageReference Include="Usb.Events" Version="11.0.0.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -86,7 +86,7 @@ sudo apt-get install build-essential
 ```
 sudo apt-get install libudev-dev:i386 libudev-dev:amd64
 ```
-support for compiling 32 bit on 64 bit Linux:
+support for compiling 32-bit on 64-bit Linux:
 ```
 sudo apt-get install gcc-multilib
 ```
@@ -100,6 +100,8 @@ sudo apt-get install gcc-multilib
 
 ## Version history:
 
+- 11.0.0.0
+    - Added 32-bit support in Linux
 - 10.1.1.1:
     - Fixed `Dispose()` to exit native monitor loop in macOS
 - 10.1.1.0:
