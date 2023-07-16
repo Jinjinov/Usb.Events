@@ -49,10 +49,10 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And $([System.Environment]::Is64BitOperatingSystem)"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And $([System.Environment]::Is64BitOperatingSystem)"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
