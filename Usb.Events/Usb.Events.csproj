@@ -44,50 +44,20 @@
       <Flags>-shared</Flags>
     </PropertyGroup>
 
-    <Exec Command="uname -m" ConsoleToMSBuild="true">
+    <Exec Command="getconf LONG_BIT" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Architecture" />
     </Exec>
-    
-    <PropertyGroup>
-      <Is32BitMacOs Condition="[MSBuild]::IsOSPlatform('OSX') and (
-        '$(Architecture)' == 'i386' or 
-        '$(Architecture)' == 'arm')">true</Is32BitMacOs>
-      
-      <Is64BitMacOs Condition="[MSBuild]::IsOSPlatform('OSX') and (
-        '$(Architecture)' == 'x86_64' or 
-        '$(Architecture)' == 'arm64')">true</Is64BitMacOs>
 
-      <Is32BitLinux Condition="[MSBuild]::IsOSPlatform('Linux') and (
-        '$(Architecture)' == 'i386' or 
-        '$(Architecture)' == 'i686' or 
-        '$(Architecture)' == 'arm' or 
-        '$(Architecture)' == 'armv6l' or 
-        '$(Architecture)' == 'armv7l' or 
-        '$(Architecture)' == 'powerpc' or 
-        '$(Architecture)' == 's390' or 
-        '$(Architecture)' == 'mips' or 
-        '$(Architecture)' == 'mipsel')">true</Is32BitLinux>
-
-      <Is64BitLinux Condition="[MSBuild]::IsOSPlatform('Linux') and (
-        '$(Architecture)' == 'x86_64' or 
-        '$(Architecture)' == 'amd64' or 
-        '$(Architecture)' == 'aarch64' or 
-        '$(Architecture)' == 'ppc64' or 
-        '$(Architecture)' == 's390x' or 
-        '$(Architecture)' == 'mips64' or 
-        '$(Architecture)' == 'mips64el')">true</Is64BitLinux>
-    </PropertyGroup>
-
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == 'x86_64' Or '$(Architecture)' == 'i386')"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == '32')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And $([System.Environment]::Is64BitOperatingSystem)"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == '64')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And $([System.Environment]::Is64BitOperatingSystem)"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(Architecture)' == '64')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
