@@ -82,9 +82,18 @@ gcc with:
 ```
 sudo apt-get install build-essential
 ```
+gcc for ARM with:
+```
+sudo apt-get install gcc-arm-linux-gnueabi
+sudo apt-get install gcc-aarch64-linux-gnu
+```
 32-bit and 64-bit udev with:
 ```
 sudo apt-get install libudev-dev:i386 libudev-dev:amd64
+```
+32-bit and 64-bit udev for ARM with:
+```
+sudo apt-get install libudev-dev:armhf libudev-dev:arm64
 ```
 support for compiling 32-bit on 64-bit Linux:
 ```

@@ -36,7 +36,9 @@
   </ItemGroup>
 
   <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
-    <MakeDir Directories="x86/$(Configuration);x64/$(Configuration)" />
+
+    <MakeDir Directories="x86/$(Configuration);x64/$(Configuration);arm/$(Configuration);arm64/$(Configuration)" />
+
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
       <Flags>-shared -g -D DEBUG</Flags>
     </PropertyGroup>
@@ -50,43 +52,71 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == '32')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc -m32 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc -m32 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
+          WorkingDirectory=".\"
+          Command="arm-linux-gnueabi-gcc -march=armv7-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(Architecture)' == '64')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc -m64 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(Architecture)' == '64')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc -m64 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(Architecture)' == '64')"
+          WorkingDirectory=".\"
+          Command="aarch64-linux-gnu-gcc -march=armv8-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <ItemGroup>
-    <None Include="./x86/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Linux.so')">
-      <Pack>true</Pack>
-      <PackagePath>runtimes\linux-x86\native</PackagePath>
-      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
-      <Link>UsbEventWatcher.Linux.so</Link>
-    </None>
     <None Include="./x86/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x86\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
-    <None Include="./x64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Linux.so')">
+
+    <None Include="./x86/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
-      <PackagePath>runtimes\linux-x64\native</PackagePath>
-      <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>runtimes\linux-x86\native</PackagePath>
+      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Linux.so</Link>
     </None>
+
+    <None Include="./arm/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Linux.so')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\linux-arm\native</PackagePath>
+      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
+    </None>
+
     <None Include="./x64/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
+
+    <None Include="./x64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Linux.so')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\linux-x64\native</PackagePath>
+      <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
+    </None>
+
+    <None Include="./arm64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm64/$(Configuration)/UsbEventWatcher.Linux.so')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\linux-arm64\native</PackagePath>
+      <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
+    </None>
   </ItemGroup>
-  
+
 </Project>
