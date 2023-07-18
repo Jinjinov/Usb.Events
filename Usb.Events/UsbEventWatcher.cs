@@ -11,6 +11,8 @@ namespace Usb.Events
 {
     public class UsbEventWatcher : IUsbEventWatcher
     {
+        public static bool DisableDebugOutput { get; set; }
+
         #region IUsbEventWatcher
 
         public List<string> UsbDrivePathList { get; private set; } = new List<string>();
@@ -348,6 +350,9 @@ namespace Usb.Events
         private static void DebugOutput(ManagementBaseObject managementBaseObject)
         {
 #if DEBUG
+            if (DisableDebugOutput)
+                return;
+
             System.Diagnostics.Debug.WriteLine(string.Empty);
 
             foreach (PropertyData property in managementBaseObject.Properties)
