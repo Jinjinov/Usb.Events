@@ -105,7 +105,9 @@
 
     <PropertyGroup>
       <DockerImageName>usb-event-watcher-arm</DockerImageName>
-    </PropertyGroup>
+      <DockerContainerName>usb-event-watcher-arm-container</DockerContainerName>
+    
+  </PropertyGroup>
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
@@ -113,7 +115,19 @@
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker run -v arm:/host/arm -v arm64:/host/arm64 $(DockerImageName)" />
+          Command="docker run --name $(DockerContainerName) -v arm:/arm -v arm64:/arm64 $(DockerImageName)" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker cp $(DockerContainerName):/root/UsbEventWatcher.Linux.so ./arm64/UsbEventWatcher.Linux.so" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker stop $(DockerContainerName)" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker rm $(DockerContainerName)" />
 
   </Target>
 

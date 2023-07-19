@@ -27,5 +27,8 @@ RUN gcc -march=armv8-a -o /root/UsbEventWatcher.Linux_arm64.so -shared -fPIC /ro
 
 # Copy the compiled shared libraries to their respective directories
 RUN mkdir -p /arm /arm64
-#RUN cp /root/UsbEventWatcher.Linux_arm.so /arm/UsbEventWatcher.Linux.so
-RUN cp /root/UsbEventWatcher.Linux_arm64.so /arm64/UsbEventWatcher.Linux.so
+
+COPY entrypoint.sh /root/
+RUN chmod +x /root/entrypoint.sh
+
+CMD ["/root/entrypoint.sh"]
