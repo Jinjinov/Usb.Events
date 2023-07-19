@@ -35,7 +35,7 @@
     <PackageReference Include="System.Management" Version="7.0.0" />
   </ItemGroup>
 
-  <Target Name="BuildNonWindowsNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
+  <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
 
     <MakeDir Directories="x86/$(Configuration);x64/$(Configuration);arm/$(Configuration);arm64/$(Configuration)" />
 
@@ -84,6 +84,37 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64')"
           WorkingDirectory=".\"
           Command="aarch64-linux-gnu-gcc -march=armv8-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+  </Target>
+
+  <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
+
+    <Exec Command="docker version --format '{{.Server.Version}}'" ConsoleToMSBuild="true" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="DockerExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="DockerVersion" />
+    </Exec>
+
+    <PropertyGroup>
+      <DockerInstalled Condition="'$(DockerExitCode)' == '0'">true</DockerInstalled>
+      <DockerNotInstalled Condition="'$(DockerExitCode)' != '0'">true</DockerNotInstalled>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="Docker Installed: $(DockerVersion)" Condition="'$(DockerInstalled)' == 'true'" />
+    <Message Importance="High" Text="Docker Not Installed" Condition="'$(DockerNotInstalled)' == 'true'" />
+
+    <MakeDir Directories="arm/$(Configuration);arm64/$(Configuration)" />
+
+    <PropertyGroup>
+      <DockerImageName>usb-event-watcher-arm</DockerImageName>
+    </PropertyGroup>
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker build -t $(DockerImageName) ." />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker run -v arm:/host/arm -v arm64:/host/arm64 $(DockerImageName)" />
+
   </Target>
 
   <ItemGroup>
