@@ -1,7 +1,8 @@
+#FROM arm32v7/ubuntu
+
 FROM arm64v8/ubuntu
 
 RUN apt-get update
-
 RUN apt-get install -y gcc libudev-dev
 
 COPY Linux/UsbEventWatcher.Linux.c .
