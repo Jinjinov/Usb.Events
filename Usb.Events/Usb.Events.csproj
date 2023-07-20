@@ -104,10 +104,9 @@
     <MakeDir Directories="arm/$(Configuration);arm64/$(Configuration)" />
 
     <PropertyGroup>
-      <DockerImageName>usb-event-watcher-arm</DockerImageName>
-      <DockerContainerName>usb-event-watcher-arm-container</DockerContainerName>
-    
-  </PropertyGroup>
+      <DockerImageName>usb-event-watcher-image-arm</DockerImageName>
+      <DockerContainerName>usb-event-watcher-container-arm</DockerContainerName>
+    </PropertyGroup>
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
@@ -115,11 +114,11 @@
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker run --name $(DockerContainerName) -v arm:/arm -v arm64:/arm64 $(DockerImageName)" />
+          Command="docker run --name $(DockerContainerName) $(DockerImageName)" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker cp $(DockerContainerName):/root/UsbEventWatcher.Linux.so ./arm64/UsbEventWatcher.Linux.so" />
+          Command="docker cp $(DockerContainerName):UsbEventWatcher.Linux.so ./arm64/UsbEventWatcher.Linux.so" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
