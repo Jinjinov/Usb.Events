@@ -32,7 +32,7 @@ fi
 
 # Determine the target architecture-specific gcc options
 if [ "$target_arch" = "arm" ]; then
-  gcc_arch="-march=armv7-a -mfloat-abi=softfp"
+  gcc_arch="-march=armv7-a+fp"
 else
   gcc_arch="-march=armv8-a"
 fi
