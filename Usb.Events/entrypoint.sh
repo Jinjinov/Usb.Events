@@ -1,5 +1,13 @@
 #!/bin/bash
 
+args_array=("$@")
+for i in "${args_array[@]}"
+do
+  :
+  echo "### Got variable $i ###"
+done
+echo "args_count = $#"
+
 # Validate the number of arguments (exactly two arguments expected)
 if [ $# -ne 2 ]; then
   echo "Usage: $0 <TargetArch> <BuildType>"
@@ -22,18 +30,18 @@ if [ "$build_type" != "Debug" ] && [ "$build_type" != "Release" ]; then
   exit 1
 fi
 
+# Determine the target architecture-specific gcc options
+if [ "$target_arch" = "arm" ]; then
+  gcc_arch="-march=armv7-a -mfloat-abi=softfp"
+else
+  gcc_arch="-march=armv8-a"
+fi
+
 # Determine the gcc flags based on build type
 if [ "$build_type" = "Debug" ]; then
   gcc_flags="-shared -g -D DEBUG"
 else
   gcc_flags="-shared"
-fi
-
-# Determine the target architecture-specific gcc options
-if [ "$target_arch" = "arm" ]; then
-  gcc_arch="-march=armv7-a"
-else
-  gcc_arch="-march=armv8-a"
 fi
 
 # Execute the gcc command with the selected architecture and flags
