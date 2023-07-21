@@ -9,8 +9,8 @@
   <PropertyGroup>
     <Product>Usb.Events</Product>
     <PackageId>Usb.Events</PackageId>
-    <PackageVersion>11.0.0.0</PackageVersion>
-    <Version>11.0.0.0</Version>
+    <PackageVersion>11.0.0.1</PackageVersion>
+    <Version>11.0.0.1</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <Copyright>Copyright (c) Jinjinov 2022</Copyright>
@@ -37,7 +37,7 @@
 
   <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
 
-    <MakeDir Directories="x86/$(Configuration);x64/$(Configuration);arm/$(Configuration);arm64/$(Configuration)" />
+    <MakeDir Directories="x86/$(Configuration);x64/$(Configuration)" />
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
       <Flags>-shared -g -D DEBUG</Flags>
@@ -50,17 +50,6 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="LongBit" />
     </Exec>
 
-    <Exec Command="arch" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="Arch" />
-    </Exec>
-
-    <PropertyGroup>
-      <IsIntel Condition="'$(Arch)' == 'i386' or '$(Arch)' == 'x86_64' or '$(Arch)' == 'i686' or '$(Arch)' == 'amd64'">true</IsIntel>
-      <IsArm Condition="'$(Arch)' == 'arm' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv6l' or '$(Arch)' == 'armv7l' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</IsArm>
-      <Is32Bit Condition="'$(Arch)' == 'i386' or '$(Arch)' == 'i686' or '$(Arch)' == 'arm' or '$(Arch)' == 'armv6l' or '$(Arch)' == 'armv7l'">true</Is32Bit>
-      <Is64Bit Condition="'$(Arch)' == 'x86_64' or '$(Arch)' == 'amd64' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</Is64Bit>
-    </PropertyGroup>
-
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32')"
           WorkingDirectory=".\"
           Command="gcc -m32 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
@@ -69,10 +58,6 @@
           WorkingDirectory=".\"
           Command="gcc -m32 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
-          WorkingDirectory=".\"
-          Command="arm-linux-gnueabi-gcc -march=armv7-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
-
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64')"
           WorkingDirectory=".\"
           Command="gcc -m64 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
@@ -80,10 +65,6 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64')"
           WorkingDirectory=".\"
           Command="gcc -m64 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
-
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64')"
-          WorkingDirectory=".\"
-          Command="aarch64-linux-gnu-gcc -march=armv8-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">

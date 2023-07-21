@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="11.0.0.0" />
+            <PackageReference Include="Usb.Events" Version="11.0.0.1" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -82,18 +82,9 @@ gcc with:
 ```
 sudo apt-get install build-essential
 ```
-gcc for ARM with:
-```
-sudo apt-get install gcc-arm-linux-gnueabi
-sudo apt-get install gcc-aarch64-linux-gnu
-```
 32-bit and 64-bit udev with:
 ```
 sudo apt-get install libudev-dev:i386 libudev-dev:amd64
-```
-32-bit and 64-bit udev for ARM with:
-```
-sudo apt-get install libudev-dev:armhf libudev-dev:arm64
 ```
 support for compiling 32-bit on 64-bit Linux:
 ```
@@ -102,6 +93,8 @@ sudo apt-get install gcc-multilib
 
 `Usb.Events.dll` expects to find `UsbEventWatcher.Linux.so` and `UsbEventWatcher.Mac.dylib` in the working directory when it runs, so make sure to build the project on Linux and Mac before building the NuGet package on Windows.
 
+To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` for Linux, you need to install Docker.
+
 ## TO DO:
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
@@ -109,6 +102,8 @@ sudo apt-get install gcc-multilib
 
 ## Version history:
 
+- 11.0.0.1
+    - Added 32-bit and 64-bit ARM support in Linux
 - 11.0.0.0
     - Added 32-bit support in Linux
 - 10.1.1.1:
