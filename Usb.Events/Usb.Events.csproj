@@ -103,29 +103,55 @@
     <MakeDir Directories="arm/$(Configuration);arm64/$(Configuration)" />
 
     <PropertyGroup>
-      <DockerImageName>usb-event-watcher-image-arm</DockerImageName>
-      <DockerContainerName>usb-event-watcher-container-arm</DockerContainerName>
+      <DockerImageArm>usb-event-watcher-image-arm</DockerImageArm>
+      <DockerContainerArm>usb-event-watcher-container-arm</DockerContainerArm>
+      <DockerImageArm64>usb-event-watcher-image-arm64</DockerImageArm64>
+      <DockerContainerArm64>usb-event-watcher-container-arm64</DockerContainerArm64>
     </PropertyGroup>
 
-    <Exec Condition="'$(DockerInstalled)' == 'true'"
-          WorkingDirectory=".\"
-          Command="docker build -t $(DockerImageName) ." />
+    <!-- Build and run the Docker container for arm -->
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker run --name $(DockerContainerName) $(DockerImageName) $(Configuration)" />
+          Command="docker build -t $(DockerImageArm) -f Dockerfile.arm ." />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker cp $(DockerContainerName):UsbEventWatcher.Linux.so ./arm64/$(Configuration)/UsbEventWatcher.Linux.so" />
+          Command="docker run --name $(DockerContainerArm) $(DockerImageArm) arm $(Configuration)" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker stop $(DockerContainerName)" />
+          Command="docker cp $(DockerContainerArm):UsbEventWatcher.Linux.so ./arm/$(Configuration)/UsbEventWatcher.Linux.so" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker rm $(DockerContainerName)" />
+          Command="docker stop $(DockerContainerArm)" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker rm $(DockerContainerArm)" />
+
+    <!-- Build and run the Docker container for arm64 -->
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker build -t $(DockerImageArm64) -f Dockerfile.arm64 ." />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker run --name $(DockerContainerArm64) $(DockerImageArm64) arm64 $(Configuration)" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker cp $(DockerContainerArm64):UsbEventWatcher.Linux.so ./arm64/$(Configuration)/UsbEventWatcher.Linux.so" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker stop $(DockerContainerArm64)" />
+
+    <Exec Condition="'$(DockerInstalled)' == 'true'"
+          WorkingDirectory=".\"
+          Command="docker rm $(DockerContainerArm64)" />
 
   </Target>
 

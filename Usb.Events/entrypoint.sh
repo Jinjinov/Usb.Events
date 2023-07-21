@@ -1,13 +1,20 @@
 #!/bin/bash
 
-# Validate the number of arguments
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 <BuildType>"
+# Validate the number of arguments (exactly two arguments expected)
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <TargetArch> <BuildType>"
   exit 1
 fi
 
-# Set the build type based on the argument
-build_type="$1"
+# Set the target architecture and build type based on the arguments
+target_arch="$1"
+build_type="$2"
+
+# Validate the target architecture argument
+if [ "$target_arch" != "arm" ] && [ "$target_arch" != "arm64" ]; then
+  echo "Invalid TargetArch argument. Use 'arm' or 'arm64'."
+  exit 1
+fi
 
 # Validate the build type argument
 if [ "$build_type" != "Debug" ] && [ "$build_type" != "Release" ]; then
@@ -15,23 +22,19 @@ if [ "$build_type" != "Debug" ] && [ "$build_type" != "Release" ]; then
   exit 1
 fi
 
-# Perform the build based on the build type
+# Determine the gcc flags based on build type
 if [ "$build_type" = "Debug" ]; then
   gcc_flags="-shared -g -D DEBUG"
 else
   gcc_flags="-shared"
 fi
 
-# Execute the gcc command
-gcc -march=armv8-a -o UsbEventWatcher.Linux.so "$gcc_flags" -fPIC UsbEventWatcher.Linux.c -ludev
+# Determine the target architecture-specific gcc options
+if [ "$target_arch" = "arm" ]; then
+  gcc_arch="-march=armv7-a"
+else
+  gcc_arch="-march=armv8-a"
+fi
 
-
-echo "Started compiling"
-
-#gcc -march=armv7-a -o UsbEventWatcher.Linux.so -shared -fPIC UsbEventWatcher.Linux.c -ludev
-
-#gcc -march=armv8-a -o UsbEventWatcher.Linux.so -shared -fPIC UsbEventWatcher.Linux.c -ludev
-
-echo "Finished compiling"
-
-#exec "$@"
+# Execute the gcc command with the selected architecture and flags
+gcc $gcc_arch $gcc_flags UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC
