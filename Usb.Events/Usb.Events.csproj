@@ -95,11 +95,10 @@
 
     <PropertyGroup>
       <DockerInstalled Condition="'$(DockerExitCode)' == '0'">true</DockerInstalled>
-      <DockerNotInstalled Condition="'$(DockerExitCode)' != '0'">true</DockerNotInstalled>
     </PropertyGroup>
 
-    <Message Importance="High" Text="Docker Installed: $(DockerVersion)" Condition="'$(DockerInstalled)' == 'true'" />
-    <Message Importance="High" Text="Docker Not Installed" Condition="'$(DockerNotInstalled)' == 'true'" />
+    <Message Condition="'$(DockerInstalled)' == 'true'" Importance="High" Text="Docker Installed: $(DockerVersion)" />
+    <Message Condition="'$(DockerInstalled)' != 'true'" Importance="High" Text="Docker Not Installed" />
 
     <MakeDir Directories="arm/$(Configuration);arm64/$(Configuration)" />
 
@@ -114,11 +113,11 @@
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker run --name $(DockerContainerName) $(DockerImageName)" />
+          Command="docker run --name $(DockerContainerName) $(DockerImageName) $(Configuration)" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
-          Command="docker cp $(DockerContainerName):UsbEventWatcher.Linux.so ./arm64/UsbEventWatcher.Linux.so" />
+          Command="docker cp $(DockerContainerName):UsbEventWatcher.Linux.so ./arm64/$(Configuration)/UsbEventWatcher.Linux.so" />
 
     <Exec Condition="'$(DockerInstalled)' == 'true'"
           WorkingDirectory=".\"
