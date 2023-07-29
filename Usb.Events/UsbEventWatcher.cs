@@ -83,15 +83,14 @@ namespace Usb.Events
                     {
                         try
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
                             {
                                 GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                             }
                         }
                         catch (InvalidOperationException)
                         {
-                            // Prevent application crash and ignore possible exception when collection was changed because this may
-                            // happen by another thread or task
+                            // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
                         }
 
                         await Task.Delay(1000, _cancellationTokenSource.Token);
@@ -110,15 +109,14 @@ namespace Usb.Events
                     {
                         try
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
                             {
                                 GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                             }
                         }
                         catch (InvalidOperationException)
                         {
-                            // Prevent application crash and ignore possible exception when collection was changed because this may
-                            // happen by another thread or task
+                            // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
                         }
 
                         await Task.Delay(1000, _cancellationTokenSource.Token);

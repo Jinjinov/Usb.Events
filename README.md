@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="11.0.0.1" />
+            <PackageReference Include="Usb.Events" Version="11.0.1.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -102,9 +102,11 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` for Linux,
 
 ## Version history:
 
-- 11.0.0.1
+- 11.0.1.0:
+    - Fixed `InvalidOperationException` in Linux and macOS - by [@Frankh67](https://github.com/Frankh67)
+- 11.0.0.1:
     - Added 32-bit and 64-bit ARM support in Linux
-- 11.0.0.0
+- 11.0.0.0:
     - Added 32-bit support in Linux
 - 10.1.1.1:
     - Fixed `Dispose()` to exit native monitor loop in macOS
