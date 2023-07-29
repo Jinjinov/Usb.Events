@@ -81,9 +81,17 @@ namespace Usb.Events
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
-                        foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                        try
                         {
-                            GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            {
+                                GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                            }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Prevent application crash and ignore possible exception when collection was changed because this may
+                            // happen by another thread or task
                         }
 
                         await Task.Delay(1000, _cancellationTokenSource.Token);
@@ -100,9 +108,17 @@ namespace Usb.Events
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
-                        foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                        try
                         {
-                            GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            {
+                                GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                            }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Prevent application crash and ignore possible exception when collection was changed because this may
+                            // happen by another thread or task
                         }
 
                         await Task.Delay(1000, _cancellationTokenSource.Token);
