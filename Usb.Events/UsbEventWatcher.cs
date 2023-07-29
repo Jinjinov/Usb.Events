@@ -83,7 +83,7 @@ namespace Usb.Events
                     {
                         try
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
                             {
                                 GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                             }
@@ -110,7 +110,7 @@ namespace Usb.Events
                     {
                         try
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
+                            foreach (UsbDevice usbDevice in UsbDeviceList.ToList().Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)))
                             {
                                 GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
                             }
