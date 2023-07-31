@@ -50,19 +50,30 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="LongBit" />
     </Exec>
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32')"
+    <Exec Command="arch" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="Arch" />
+    </Exec>
+
+    <PropertyGroup>
+      <IsIntel Condition="'$(Arch)' == 'i386' or '$(Arch)' == 'x86_64' or '$(Arch)' == 'i686' or '$(Arch)' == 'amd64'">true</IsIntel>
+      <IsArm Condition="'$(Arch)' == 'arm' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv6l' or '$(Arch)' == 'armv7l' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</IsArm>
+      <Is32Bit Condition="'$(Arch)' == 'i386' or '$(Arch)' == 'i686' or '$(Arch)' == 'arm' or '$(Arch)' == 'armv6l' or '$(Arch)' == 'armv7l'">true</Is32Bit>
+      <Is64Bit Condition="'$(Arch)' == 'x86_64' or '$(Arch)' == 'amd64' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</Is64Bit>
+    </PropertyGroup>
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m32 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux'))"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m32 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64')"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m64 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64')"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m64 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
