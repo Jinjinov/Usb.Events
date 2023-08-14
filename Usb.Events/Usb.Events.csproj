@@ -35,6 +35,34 @@
     <PackageReference Include="System.Management" Version="7.0.0" />
   </ItemGroup>
 
+  <Target Name="CheckArchitecture" BeforeTargets="Build">
+    <PropertyGroup>
+      <IsOs32Bit Condition="'$([System.Environment]::Is64BitOperatingSystem)' == 'false'">true</IsOs32Bit>
+      <IsOs64Bit Condition="'$([System.Environment]::Is64BitOperatingSystem)' == 'true'">true</IsOs64Bit>
+      <IsProcess32Bit Condition="'$([System.Environment]::Is64BitProcess)' == 'false'">true</IsProcess32Bit>
+      <IsProcess64Bit Condition="'$([System.Environment]::Is64BitProcess)' == 'true'">true</IsProcess64Bit>
+      <IsCpu32Bit Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X86' or '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm'">true</IsCpu32Bit>
+      <IsCpu64Bit Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64' or '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64'">true</IsCpu64Bit>
+      <IsCpuIntel Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X86' or '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64'">true</IsCpuIntel>
+      <IsCpuArm Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm' or '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64'">true</IsCpuArm>
+      <IsOsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))'">true</IsOsWindows>
+      <IsOsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">true</IsOsLinux>
+      <IsOsMacOS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))'">true</IsOsMacOS>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="Is OS 32-bit: $(IsOs32Bit)" />
+    <Message Importance="High" Text="Is OS 64-bit: $(IsOs64Bit)" />
+    <Message Importance="High" Text="Is Process 32-bit: $(IsProcess32Bit)" />
+    <Message Importance="High" Text="Is Process 64-bit: $(IsProcess64Bit)" />
+    <Message Importance="High" Text="Is CPU 32-bit: $(IsCpu32Bit)" />
+    <Message Importance="High" Text="Is CPU 64-bit: $(IsCpu64Bit)" />
+    <Message Importance="High" Text="Is CPU Intel: $(IsCpuIntel)" />
+    <Message Importance="High" Text="Is CPU ARM: $(IsCpuArm)" />
+    <Message Importance="High" Text="Is OS Windows: $(IsOsWindows)" />
+    <Message Importance="High" Text="Is OS Linux: $(IsOsLinux)" />
+    <Message Importance="High" Text="Is OS macOS: $(IsOsMacOS)" />
+  </Target>
+
   <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
 
     <MakeDir Directories="x86/$(Configuration);x64/$(Configuration)" />
@@ -61,6 +89,8 @@
       <Is64Bit Condition="'$(Arch)' == 'x86_64' or '$(Arch)' == 'amd64' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</Is64Bit>
     </PropertyGroup>
 
+    <!-- Intel -->
+
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m32 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
@@ -76,6 +106,24 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc -m64 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
+    <!-- Arm -->
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
+          WorkingDirectory=".\"
+          Command="gcc -march=armv7-a+fp $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsArm)' == 'true')"
+          WorkingDirectory=".\"
+          Command="gcc -march=armv7-a+fp $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
+          WorkingDirectory=".\"
+          Command="gcc -march=armv8-a $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
+          WorkingDirectory=".\"
+          Command="gcc -march=armv8-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
