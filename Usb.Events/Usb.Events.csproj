@@ -93,37 +93,37 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -m32 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc $(Flags) -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -m32 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -m64 $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -m64 $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
     <!-- Arm -->
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -march=armv7-a+fp $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc $(Flags) -march=armv7-a+fp ./Mac/UsbEventWatcher.Mac.c -o ./x86/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -march=armv7-a+fp $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -march=armv8-a $(Flags) ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
+          Command="gcc $(Flags) -march=armv8-a ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc -march=armv8-a $(Flags) ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -march=armv8-a ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">

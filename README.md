@@ -93,7 +93,39 @@ sudo apt-get install gcc-multilib
 
 `Usb.Events.dll` expects to find `UsbEventWatcher.Linux.so` and `UsbEventWatcher.Mac.dylib` in the working directory when it runs, so make sure to build the project on Linux and Mac before building the NuGet package on Windows.
 
-To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` for Linux, you need to install Docker.
+32-bit Intel macOS:
+
+    gcc -shared -m32 ./Mac/UsbEventWatcher.Mac.c -o ./x86/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit"
+
+32-bit Intel Linux:
+
+    gcc -shared -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/Release/UsbEventWatcher.Linux.so -ludev -fPIC"
+
+64-bit Intel macOS:
+
+    gcc -shared -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit"
+
+64-bit Intel Linux:
+
+    gcc -shared -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/Release/UsbEventWatcher.Linux.so -ludev -fPIC"
+
+32-bit ARM macOS:
+
+    gcc -shared -march=armv7-a+fp ./Mac/UsbEventWatcher.Mac.c -o ./x86/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit"
+
+32-bit ARM Linux:
+
+    gcc -shared -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./x86/Release/UsbEventWatcher.Linux.so -ludev -fPIC"
+
+64-bit ARM macOS:
+
+    gcc -shared -march=armv8-a ./Mac/UsbEventWatcher.Mac.c -o ./x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit"
+
+64-bit ARM Linux:
+
+    gcc -shared -march=armv8-a ./Linux/UsbEventWatcher.Linux.c -o ./x64/Release/UsbEventWatcher.Linux.so -ludev -fPIC"
+
+To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows, you need to install Docker.
 
 ## TO DO:
 
