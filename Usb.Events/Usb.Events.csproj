@@ -113,7 +113,7 @@
           WorkingDirectory=".\"
           Command="gcc $(Flags) -march=armv7-a+fp ./Mac/UsbEventWatcher.Mac.c -o ./arm/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
 
-    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsArm)' == 'true')"
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
