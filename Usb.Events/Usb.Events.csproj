@@ -9,8 +9,8 @@
   <PropertyGroup>
     <Product>Usb.Events</Product>
     <PackageId>Usb.Events</PackageId>
-    <PackageVersion>11.0.1.0</PackageVersion>
-    <Version>11.0.1.0</Version>
+    <PackageVersion>11.0.1.1</PackageVersion>
+    <Version>11.0.1.1</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <Copyright>Copyright (c) Jinjinov 2022</Copyright>
@@ -89,7 +89,7 @@
       <Is64Bit Condition="'$(Arch)' == 'x86_64' or '$(Arch)' == 'amd64' or '$(Arch)' == 'arm64' or '$(Arch)' == 'armv8l' or '$(Arch)' == 'aarch64'">true</Is64Bit>
     </PropertyGroup>
 
-    <!-- Intel -->
+    <!-- Intel 32 bit -->
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
@@ -99,6 +99,8 @@
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
+    <!-- Intel 64 bit -->
+
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Mac/UsbEventWatcher.Mac.c -o ./x64/$(Configuration)/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit" />
@@ -107,7 +109,7 @@
           WorkingDirectory=".\"
           Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
 
-    <!-- Arm -->
+    <!-- Arm 32 bit -->
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
@@ -116,6 +118,8 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
           Command="gcc $(Flags) -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+
+    <!-- Arm 64 bit -->
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
@@ -128,7 +132,7 @@
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
 
-    <Exec Command="docker version --format '{{.Server.Version}}'" ConsoleToMSBuild="true" IgnoreExitCode="true">
+    <Exec Command="docker version --format '{{.Server.Version}}'" ConsoleToMSBuild="true" IgnoreExitCode="true" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="DockerExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="DockerVersion" />
     </Exec>
@@ -196,6 +200,9 @@
   </Target>
 
   <ItemGroup>
+
+    <!-- Intel 32 bit -->
+
     <None Include="./x86/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x86\native</PackagePath>
@@ -210,12 +217,7 @@
       <Link>UsbEventWatcher.Linux.so</Link>
     </None>
 
-    <None Include="./arm/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Linux.so')">
-      <Pack>true</Pack>
-      <PackagePath>runtimes\linux-arm\native</PackagePath>
-      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
-      <Link>UsbEventWatcher.Linux.so</Link>
-    </None>
+    <!-- Intel 64 bit -->
 
     <None Include="./x64/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
@@ -231,12 +233,38 @@
       <Link>UsbEventWatcher.Linux.so</Link>
     </None>
 
+    <!-- Arm 32 bit -->
+
+    <None Include="./arm/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\osx-arm\native</PackagePath>
+      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Mac.dylib</Link>
+    </None>
+
+    <None Include="./arm/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Linux.so')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\linux-arm\native</PackagePath>
+      <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Linux.so</Link>
+    </None>
+
+    <!-- Arm 64 bit -->
+
+    <None Include="./arm64/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm64/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+      <Pack>true</Pack>
+      <PackagePath>runtimes\osx-arm64\native</PackagePath>
+      <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
+      <Link>UsbEventWatcher.Mac.dylib</Link>
+    </None>
+
     <None Include="./arm64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm64/$(Configuration)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-arm64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Linux.so</Link>
     </None>
+
   </ItemGroup>
 
 </Project>
