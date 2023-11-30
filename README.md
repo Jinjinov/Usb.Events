@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="11.0.1.1" />
+            <PackageReference Include="Usb.Events" Version="11.1.0.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -134,6 +134,8 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 ## Version history:
 
+- 11.1.0.0:
+    - Added `UsbEvents.snk` to sign the assembly with a strong name key
 - 11.0.1.1:
     - Added 64-bit ARM support in macOS - thanks to [@slater1](https://github.com/slater1)
 - 11.0.1.0:
