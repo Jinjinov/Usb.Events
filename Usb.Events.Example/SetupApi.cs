@@ -18,8 +18,7 @@ namespace Usb.Events.Example
 
         public static Device? Get(string pnpDeviceId)
         {
-            if (pnpDeviceId == null)
-                throw new ArgumentNullException(nameof(pnpDeviceId));
+            ArgumentNullException.ThrowIfNull(pnpDeviceId);
 
             IntPtr hDevInfo = SetupDiGetClassDevs(IntPtr.Zero, pnpDeviceId, IntPtr.Zero, DIGCF.DIGCF_ALLCLASSES | DIGCF.DIGCF_DEVICEINTERFACE);
             if (hDevInfo == (IntPtr)INVALID_HANDLE_VALUE)
