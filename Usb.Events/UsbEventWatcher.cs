@@ -9,19 +9,45 @@ using System.Threading.Tasks;
 
 namespace Usb.Events
 {
+    /// <summary>
+    /// Main Usb.Events class
+    /// </summary>
     public class UsbEventWatcher : IUsbEventWatcher
     {
+#if DEBUG
         public static bool EnableDebugOutput { get; set; }
+#endif
 
         #region IUsbEventWatcher
 
+        /// <summary>
+        /// List of USB drive paths
+        /// </summary>
         public List<string> UsbDrivePathList { get; private set; } = new List<string>();
+
+        /// <summary>
+        /// List of USB devices
+        /// </summary>
         public List<UsbDevice> UsbDeviceList { get; private set; } = new List<UsbDevice>();
 
+        /// <summary>
+        /// USB drive mounted event
+        /// </summary>
         public event EventHandler<string>? UsbDriveMounted;
+
+        /// <summary>
+        /// USB drive ejected event
+        /// </summary>
         public event EventHandler<string>? UsbDriveEjected;
 
+        /// <summary>
+        /// USB device added event
+        /// </summary>
         public event EventHandler<UsbDevice>? UsbDeviceAdded;
+
+        /// <summary>
+        /// USB device removed event
+        /// </summary>
         public event EventHandler<UsbDevice>? UsbDeviceRemoved;
 
         #endregion
@@ -45,6 +71,13 @@ namespace Usb.Events
         private CancellationTokenSource? _cancellationTokenSource;
         private bool _isRunning;
 
+        /// <summary>
+        /// Main Usb.Events class
+        /// </summary>
+        /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start()</param>
+        /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
+        /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
+        /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
         public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
         {
             if (startImmediately)
@@ -55,6 +88,12 @@ namespace Usb.Events
 
         #region Methods
 
+        /// <summary>
+        /// Start monitoring USB events
+        /// </summary>
+        /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
+        /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
+        /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
         public void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
         {
             if (_isRunning)
@@ -736,6 +775,11 @@ namespace Usb.Events
 
         #endregion
 
+        /// <summary>
+        /// Dispose of event watchers in Windows
+        /// Stop native event loop in macOS
+        /// Stop native event loop in Linux
+        /// </summary>
         public void Dispose()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
