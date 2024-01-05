@@ -19,13 +19,13 @@ namespace Usb.Events.Example
         public static Device? Get(string pnpDeviceId)
         {
             if (pnpDeviceId == null)
-                throw new ArgumentNullException("pnpDeviceId");
+                throw new ArgumentNullException(nameof(pnpDeviceId));
 
             IntPtr hDevInfo = SetupDiGetClassDevs(IntPtr.Zero, pnpDeviceId, IntPtr.Zero, DIGCF.DIGCF_ALLCLASSES | DIGCF.DIGCF_DEVICEINTERFACE);
             if (hDevInfo == (IntPtr)INVALID_HANDLE_VALUE)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            SP_DEVINFO_DATA data = new SP_DEVINFO_DATA();
+            SP_DEVINFO_DATA data = new();
             data.cbSize = Marshal.SizeOf(data);
             if (!SetupDiEnumDeviceInfo(hDevInfo, 0, ref data))
             {
@@ -91,9 +91,9 @@ namespace Usb.Events.Example
 
                 int cr = CM_Get_Child(out uint child, _data.DevInst, 0);
                 if (cr != 0)
-                    return new string[0];
+                    return Array.Empty<string>();
 
-                List<string> ids = new List<string> { GetDeviceId(child) };
+                List<string> ids = new() { GetDeviceId(child) };
 
                 do
                 {
@@ -170,19 +170,19 @@ namespace Usb.Events.Example
             public uint pid;
 
             // from devpkey.h
-            public static readonly DEVPROPKEY DEVPKEY_Device_Parent = new DEVPROPKEY { fmtid = new Guid("{4340A6C5-93FA-4706-972C-7B648008A5A7}"), pid = 8 };
-            public static readonly DEVPROPKEY DEVPKEY_Device_Children = new DEVPROPKEY { fmtid = new Guid("{4340A6C5-93FA-4706-972C-7B648008A5A7}"), pid = 9 };
+            public static readonly DEVPROPKEY DEVPKEY_Device_Parent = new() { fmtid = new Guid("{4340A6C5-93FA-4706-972C-7B648008A5A7}"), pid = 8 };
+            public static readonly DEVPROPKEY DEVPKEY_Device_Children = new() { fmtid = new Guid("{4340A6C5-93FA-4706-972C-7B648008A5A7}"), pid = 9 };
         }
 
-        public static readonly DEVPROPKEY DEVPKEY_Device_DeviceDesc = new DEVPROPKEY { fmtid = new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), pid = 2 };
-        public static readonly DEVPROPKEY DEVPKEY_Device_BusReportedDeviceDesc = new DEVPROPKEY { fmtid = new Guid(0x540b947e, 0x8b40, 0x45bc, 0xa8, 0xa2, 0x6a, 0x0b, 0x89, 0x4c, 0xbd, 0xa2), pid = 4 };
-        public static readonly DEVPROPKEY DEVPKEY_Device_FriendlyName = new DEVPROPKEY { fmtid = new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), pid = 14 };
+        public static readonly DEVPROPKEY DEVPKEY_Device_DeviceDesc = new() { fmtid = new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), pid = 2 };
+        public static readonly DEVPROPKEY DEVPKEY_Device_BusReportedDeviceDesc = new() { fmtid = new Guid(0x540b947e, 0x8b40, 0x45bc, 0xa8, 0xa2, 0x6a, 0x0b, 0x89, 0x4c, 0xbd, 0xa2), pid = 4 };
+        public static readonly DEVPROPKEY DEVPKEY_Device_FriendlyName = new() { fmtid = new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), pid = 14 };
 
         private string[] GetStringListProperty(DEVPROPKEY key)
         {
             SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, IntPtr.Zero, 0, out int size, 0);
             if (size == 0)
-                return new string[0];
+                return Array.Empty<string>();
 
             IntPtr buffer = Marshal.AllocHGlobal(size);
             try
@@ -190,7 +190,7 @@ namespace Usb.Events.Example
                 if (!SetupDiGetDeviceProperty(_hDevInfo, ref _data, ref key, out _, buffer, size, out size, 0))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                List<string> strings = new List<string>();
+                List<string> strings = new();
                 IntPtr current = buffer;
                 do
                 {
