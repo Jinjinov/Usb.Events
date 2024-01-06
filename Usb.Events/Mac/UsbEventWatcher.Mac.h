@@ -30,7 +30,7 @@ void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback
 
 void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback);
 
-void StopMacWatcher();
+void StopMacWatcher(void);
 
 #ifdef __cplusplus
 }
