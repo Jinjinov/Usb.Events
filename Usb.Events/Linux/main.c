@@ -19,7 +19,7 @@ void *StartWatcher(void *arg)
     pthread_exit(NULL);
 }
 
-int main()
+int main(void)
 {
     pthread_t thread;
 

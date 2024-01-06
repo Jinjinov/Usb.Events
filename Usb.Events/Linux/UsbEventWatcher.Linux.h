@@ -30,7 +30,7 @@ void GetLinuxMountPoint(const char* syspath, MountPointCallback mountPointCallba
 
 void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, int includeTTY);
 
-void StopLinuxWatcher();
+void StopLinuxWatcher(void);
 
 #ifdef __cplusplus
 }
