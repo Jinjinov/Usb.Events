@@ -212,6 +212,10 @@ extern "C"
         {
             mountPointCallback(mount_point);
         }
+        else
+        {
+            mountPointCallback("");
+        }
 
     finish:
         sd_device_unref(parent_device);
