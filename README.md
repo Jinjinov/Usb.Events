@@ -131,9 +131,15 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in macOS
+- [ ] Determine if other operating systems do not display extended info for unplugged devices and update the documentation as necessary
 
 ## Version history:
 
+- 11.2.0.1:
+    - Replaced libudev backend with sd-device backend for Linux clients
+    - Replace custom linux event loop with libsystemd's sd-event loop
+    - Update readme
+    - Explicitly mention that events for unplugged USB devices only return the system name and system path in Linux
 - 11.1.0.1:
     - Added XML documentation
 - 11.1.0.0:
