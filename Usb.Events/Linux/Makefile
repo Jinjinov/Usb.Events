@@ -2,17 +2,16 @@
 SRC_DIR = .
 OBJ_DIR = obj
 BIN_DIR = bin
-INC_DIR = ../common
 
 # Compiler options
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter -I$(INC_DIR)
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
 LDFLAGS = -lsystemd -pthread
 
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
-DEPS = $(INC_DIR)/UsbEventWatcher.Linux.h
+DEPS = UsbEventWatcher.Linux.h
 EXEC = $(BIN_DIR)/UsbEventWatcher
 
 # Targets
