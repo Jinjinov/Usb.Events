@@ -37,6 +37,9 @@ namespace Usb.Events
     /// <summary>
     /// USB device
     /// </summary>
+    /// <remarks>
+    /// On removal events in Linux, only the device name and system path will be populated.
+    /// </remarks>
     public class UsbDevice
     {
         /// <summary>
@@ -99,9 +102,7 @@ namespace Usb.Events
         /// </summary>
         public bool IsEjected { get; internal set; }
 
-        /// <summary>
-        /// USB device
-        /// </summary>
+        /// <inheritdoc cref="UsbDevice"/>
         public UsbDevice()
         {
         }

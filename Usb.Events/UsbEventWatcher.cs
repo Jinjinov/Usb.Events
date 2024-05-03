@@ -10,11 +10,15 @@ using System.Threading.Tasks;
 namespace Usb.Events
 {
     /// <summary>
-    /// Main Usb.Events class
+    /// Monitors USB device insertions and removals, and block device mounts and unmounts.
     /// </summary>
+    /// <remarks>Default implementation of <see cref="IUsbEventWatcher"/>.</remarks>
     public class UsbEventWatcher : IUsbEventWatcher
     {
 #if DEBUG
+        /// <summary>
+        /// If true, debug information is printed when <see cref="DebugOutput" /> is called./> 
+        /// </summary>
         public static bool EnableDebugOutput { get; set; }
 #endif
 
@@ -72,7 +76,7 @@ namespace Usb.Events
         private bool _isRunning;
 
         /// <summary>
-        /// Main Usb.Events class
+        /// Monitors USB device insertions and removals, and block device mounts and unmounts.
         /// </summary>
         /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start()</param>
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
@@ -142,7 +146,7 @@ namespace Usb.Events
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                _mountPointTask = Task.Run(async () => 
+                _mountPointTask = Task.Run(async () =>
                 {
                     while (!_cancellationTokenSource.Token.IsCancellationRequested)
                     {
