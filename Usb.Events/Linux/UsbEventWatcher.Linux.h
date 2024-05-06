@@ -2,35 +2,37 @@
 #define USB_EVENT_WATCHER_LINUX_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-// Structures
+    // Structures
 
-typedef struct {
-    char DeviceName[255];
-    char DeviceSystemPath[255];
-    char Product[255];
-    char ProductDescription[255];
-    char ProductID[255];
-    char SerialNumber[255];
-    char Vendor[255];
-    char VendorDescription[255];
-    char VendorID[255];
-} UsbDeviceData;
+    typedef struct UsbDeviceData
+    {
+        char DeviceName[255];
+        char DeviceSystemPath[255];
+        char Product[255];
+        char ProductDescription[255];
+        char ProductID[255];
+        char SerialNumber[255];
+        char Vendor[255];
+        char VendorDescription[255];
+        char VendorID[255];
+    } UsbDeviceData;
 
-// Function Pointers
+    // Function Pointers
 
-typedef void (*UsbDeviceCallback)(UsbDeviceData usbDevice);
-typedef void (*MountPointCallback)(const char* mountPoint);
+    typedef void (*UsbDeviceCallback)(struct UsbDeviceData usbDevice);
+    typedef void (*MountPointCallback)(const char *mountPoint);
 
-// Linux Functions
+    // Linux Functions
 
-void GetLinuxMountPoint(const char* syspath, MountPointCallback mountPointCallback);
+    void GetLinuxMountPoint(const char *syspath, MountPointCallback mountPointCallback);
 
-void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, int includeTTY);
+    void StartLinuxWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback, int includeTTY);
 
-void StopLinuxWatcher(void);
+    void StopLinuxWatcher(void);
 
 #ifdef __cplusplus
 }

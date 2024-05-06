@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Usb.Events
 {
     /// <summary>
-    /// Main Usb.Events interface
+    /// Monitors USB device insertions and removals, and block device mounts and unmounts.
     /// </summary>
     public interface IUsbEventWatcher : IDisposable
     {

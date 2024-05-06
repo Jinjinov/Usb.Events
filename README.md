@@ -1,6 +1,6 @@
 # Usb.Events
 
-Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.
+Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libsystemd on Linux and IOKit on macOS.
 
 ## How to use:
 
@@ -84,7 +84,7 @@ sudo apt-get install build-essential
 ```
 32-bit and 64-bit udev with:
 ```
-sudo apt-get install libudev-dev:i386 libudev-dev:amd64
+sudo apt-get install libsystemd0:i386 libsystemd0:amd64
 ```
 support for compiling 32-bit on 64-bit Linux:
 ```
@@ -131,9 +131,15 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in Linux
 - [ ] Automatically mount USB drive on `UsbDeviceAdded` event in macOS
+- [ ] Determine if other operating systems do not display extended info for unplugged devices and update the documentation as necessary
 
 ## Version history:
 
+- 11.2.0.1:
+    - Replaced libudev backend with sd-device backend for Linux clients
+    - Replace custom linux event loop with libsystemd's sd-event loop
+    - Update readme
+    - Explicitly mention that events for unplugged USB devices only return the system name and system path in Linux
 - 11.1.0.1:
     - Added XML documentation
 - 11.1.0.0:

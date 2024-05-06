@@ -27,18 +27,5 @@
       "MIMode": "gdb",
       "miDebuggerPath": "gdb"
     },
-    {
-      "name": "Debug UsbEventWatcher.Linux.so",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/../UsbEventWatcher.Linux.so",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb"
-    }
   ]
 }

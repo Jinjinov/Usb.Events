@@ -1,16 +1,17 @@
-# Compiler options
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
-LDFLAGS = -ludev -pthread
-
 # Directories
 SRC_DIR = .
 OBJ_DIR = obj
 BIN_DIR = bin
 
+# Compiler options
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
+LDFLAGS = -lsystemd -pthread
+
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+DEPS = UsbEventWatcher.Linux.h
 EXEC = $(BIN_DIR)/UsbEventWatcher
 
 # Targets
@@ -23,6 +24,9 @@ $(EXEC): $(OBJS)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+	
+$(OBJ_DIR)/UsbEventWatcher.Linux.o: $(DEPS)
+$(OBJ_DIR)/main.o: $(DEPS)
 
 debug: CFLAGS += -g
 debug: clean all

@@ -9,8 +9,8 @@
   <PropertyGroup>
     <Product>Usb.Events</Product>
     <PackageId>Usb.Events</PackageId>
-    <PackageVersion>11.1.0.1</PackageVersion>
-    <Version>11.1.0.1</Version>
+    <PackageVersion>11.2.0.1</PackageVersion>
+    <Version>11.2.0.1</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <Copyright>Copyright (c) Jinjinov 2022</Copyright>
@@ -100,7 +100,7 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -m32 ./Linux/UsbEventWatcher.Linux.c -o ./x86/$(Configuration)/UsbEventWatcher.Linux.so -lsystemd -fPIC" />
 
     <!-- Intel 64 bit -->
 
@@ -110,7 +110,7 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsIntel)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -m64 ./Linux/UsbEventWatcher.Linux.c -o ./x64/$(Configuration)/UsbEventWatcher.Linux.so -lsystemd -fPIC" />
 
     <!-- Arm 32 bit -->
 
@@ -120,7 +120,7 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '32') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -march=armv7-a+fp ./Linux/UsbEventWatcher.Linux.c -o ./arm/$(Configuration)/UsbEventWatcher.Linux.so -lsystemd -fPIC" />
 
     <!-- Arm 64 bit -->
 
@@ -130,7 +130,7 @@
 
     <Exec Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(LongBit)' == '64') And ('$(IsArm)' == 'true')"
           WorkingDirectory=".\"
-          Command="gcc $(Flags) -march=armv8-a ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
+          Command="gcc $(Flags) -march=armv8-a ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -lsystemd -fPIC" />
   </Target>
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
