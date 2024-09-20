@@ -134,47 +134,47 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 ## Version history:
 
-- 11.1.0.1:
+- 11.1.0.1 (2024-01-05):
     - Added XML documentation
-- 11.1.0.0:
+- 11.1.0.0 (2023-11-30):
     - Added `UsbEvents.snk` to sign the assembly with a strong name key
-- 11.0.1.1:
+- 11.0.1.1 (2023-11-17):
     - Added 64-bit ARM support in macOS - thanks to [@slater1](https://github.com/slater1)
-- 11.0.1.0:
+- 11.0.1.0 (2023-07-29):
     - Fixed `InvalidOperationException` in Linux and macOS - by [@Frankh67](https://github.com/Frankh67)
-- 11.0.0.1:
+- 11.0.0.1 (2023-07-21):
     - Added 32-bit and 64-bit ARM support in Linux
-- 11.0.0.0:
+- 11.0.0.0 (2023-07-16):
     - Added 32-bit support in Linux
-- 10.1.1.1:
+- 10.1.1.1 (2023-06-04):
     - Fixed `Dispose()` to exit native monitor loop in macOS
-- 10.1.1.0:
+- 10.1.1.0 (2023-06-01):
     - Fixed `Dispose()` to exit native monitor loop in Linux
     - Added `bool usePnPEntity` to use `Win32_PnPEntity` in Windows
-- 10.1.0.1:
+- 10.1.0.1 (2023-04-21):
     - Added `bool addAlreadyPresentDevicesToList` in Windows
-- 10.1.0.0:
+- 10.1.0.0 (2023-04-15):
     - Updated `System.Management` package reference from `4.7.0` to `7.0.0`
-- 10.0.1.1:
+- 10.0.1.1 (2021-11-09):
     - Added `bool startImmediately = true` to `UsbEventWatcher` constructor
     - Added `void Start(bool includeTTY = false)` to `IUsbEventWatcher`
-- 10.0.1.0:
+- 10.0.1.0 (2021-11-01):
     - Added `bool includeTTY = false` to `UsbEventWatcher` constructor
     - Fixed a `EnumerateDevices` bug in Linux - thanks to [@d79ima](https://github.com/d79ima)
-- 10.0.0.1:
+- 10.0.0.1 (2021-10-31):
     - Fixed a false "device added" events bug in Linux - thanks to [@d79ima](https://github.com/d79ima)
-- 10.0.0.0:
+- 10.0.0.0 (2021-07-02):
     - Fixed a `NullReferenceException` in Linux and macOS - by [@thomOrbelius](https://github.com/thomOrbelius)
-- 1.1.1.1:
+- 1.1.1.1 (2021-02-13):
     - Fixed a bug in Windows where `MountedDirectoryPath` wasn't set for a disk drive - thanks to [@cksoft0807](https://github.com/cksoft0807)
-- 1.1.1.0:
+- 1.1.1.0 (2021-02-01):
     - Fixed a memory leak in Linux function `GetLinuxMountPoint` - by [@maskimthedog](https://github.com/maskimthedog)
     - Fixed a bug in Linux where after instantiating `UsbEventWatcher`, the list of devices was empty - by [@maskimthedog](https://github.com/maskimthedog)
     - Added monitoring of `TTY` subsystem in Linux - by [@maskimthedog](https://github.com/maskimthedog)
     - Fixed a bug in Linux where monitoring would stop upon error - by [@maskimthedog](https://github.com/maskimthedog)
-- 1.1.0.1:
+- 1.1.0.1 (2020-09-19):
     - Fixed a bug
-- 1.1.0.0:
+- 1.1.0.0 (2020-08-01):
     - Added:
         - `MountedDirectoryPath`
         - `IsMounted`
@@ -184,13 +184,13 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
         - `UsbDriveInserted` renamed to `UsbDriveMounted`
         - `UsbDriveRemoved` renamed to `UsbDriveEjected`
         - `UsbDeviceInserted` renamed to `UsbDeviceAdded`
-- 1.0.1.1:
+- 1.0.1.1 (2020-07-10):
     - Fixed a bug
-- 1.0.1.0:
+- 1.0.1.0 (2020-07-04):
     - Events for all USB devices
-- 1.0.0.1:
+- 1.0.0.1 (2020-07-07):
     - Fixed a bug
-- 1.0.0.0:
+- 1.0.0.0 (2020-04-28):
     - Events for USB drives and USB storage devices
 
 ## Supported platforms:
