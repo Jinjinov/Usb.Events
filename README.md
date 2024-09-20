@@ -1,4 +1,4 @@
-# Usb.Events
+﻿# Usb.Events
 
 Subscribe to the Inserted and Removed events to be notified when a USB drive is plugged in or unplugged, or when a USB device is connected or disconnected. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.
 
@@ -192,3 +192,30 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
     - Fixed a bug
 - 1.0.0.0:
     - Events for USB drives and USB storage devices
+
+## Supported platforms:
+
+| version  | linux-arm | linux-arm64 | linux-x64 | linux-x86 | osx-arm64 | osx-x64 |
+|:--------:|:---------:|:-----------:|:---------:|:---------:|:---------:|:-------:|
+| 11.1.0.1 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
+| 11.1.0.0 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
+| 11.0.1.1 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
+| 11.0.1.0 |     ✔     |      ✔      |     ✔     |     ✔     |           |    ✔    |
+| 11.0.0.1 |     ✔     |      ✔      |     ✔     |     ✔     |           |    ✔    |
+| 11.0.0.0 |     ✔     |      ✔      |     ✔     |     ✔     |           |    ✔    |
+| 10.1.1.1 |           |             |     ✔     |           |           |    ✔    |
+| 10.1.1.0 |           |             |     ✔     |           |           |    ✔    |
+| 10.1.0.1 |           |             |     ✔     |           |           |    ✔    |
+| 10.1.0.0 |           |             |     ✔     |           |           |    ✔    |
+| 10.0.1.1 |           |             |     ✔     |           |           |    ✔    |
+| 10.0.1.0 |           |             |     ✔     |           |           |    ✔    |
+| 10.0.0.1 |           |             |     ✔     |           |           |    ✔    |
+| 10.0.0.0 |           |             |     ✔     |           |           |    ✔    |
+| 1.1.1.1  |           |             |     ✔     |           |           |    ✔    |
+| 1.1.1.0  |           |             |     ✔     |           |           |    ✔    |
+| 1.1.0.1  |           |             |     ✔     |           |           |    ✔    |
+| 1.1.0.0  |           |             |     ✔     |           |           |    ✔    |
+| 1.0.1.1  |           |             |     ✔     |           |           |    ✔    |
+| 1.0.1.0  |           |             |     ✔     |           |           |    ✔    |
+| 1.0.0.1  |           |             |     ✔     |           |           |    ✔    |
+| 1.0.0.0  |           |             |     ✔     |           |           |    ✔    |
