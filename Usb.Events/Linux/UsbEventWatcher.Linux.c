@@ -40,70 +40,99 @@ struct udev* g_udev;
 
 struct udev_device* GetChild(struct udev* udev, struct udev_device* parent, const char* subsystem, const char* devtype)
 {
+    if (!udev || !parent || !subsystem)
+    {
+        return NULL; // Validate input arguments
+    }
+
     struct udev_device* child = NULL;
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
+    if (!enumerate)
+    {
+        return NULL; // Check if enumeration object is created successfully
+    }
 
-    udev_enumerate_add_match_parent(enumerate, parent);
-    udev_enumerate_add_match_subsystem(enumerate, subsystem);
-    udev_enumerate_scan_devices(enumerate);
+    if (udev_enumerate_add_match_parent(enumerate, parent) < 0 ||
+        udev_enumerate_add_match_subsystem(enumerate, subsystem) < 0 ||
+        udev_enumerate_scan_devices(enumerate) < 0)
+    {
+        udev_enumerate_unref(enumerate);
+        return NULL; // Check if enumeration operations succeed
+    }
 
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
+    if (!devices)
+    {
+        return NULL;
+    }
+
     struct udev_list_entry* entry;
 
     udev_list_entry_foreach(entry, devices)
     {
         const char* path = udev_list_entry_get_name(entry);
+        if (!path)
+        {
+            continue; // Skip entries without a valid path
+        }
+
         child = udev_device_new_from_syspath(udev, path);
+        if (!child)
+        {
+            continue; // Skip entries that fail to create a device
+        }
 
-        if(!devtype)
-            break;
-
-        if (strcmp(udev_device_get_devtype(child), devtype) == 0)
+        if (!devtype || strcmp(udev_device_get_devtype(child), devtype) == 0)
         {
             break;
         }
+
+        udev_device_unref(child); // Unref if not the desired device
+        child = NULL;
     }
 
     udev_enumerate_unref(enumerate);
-
-    return child;
+    return child; // Return the matching child device or NULL
 }
 
 char* FindMountPoint(const char* dev_node)
 {
-    struct mntent* mount_table_entry;
-    FILE* file;
-    char* mount_point = NULL;
-
     if (dev_node == NULL)
     {
-        return NULL;
+        return NULL; // Validate input argument
     }
 
-    file = setmntent("/proc/mounts", "r");
-
+    FILE* file = setmntent("/proc/mounts", "r");
     if (file == NULL)
     {
-        return NULL;
+        return NULL; // Check if file opening succeeded
     }
 
-    while (NULL != (mount_table_entry = getmntent(file)))
+    struct mntent* mount_table_entry;
+    char* mount_point = NULL;
+
+    while ((mount_table_entry = getmntent(file)) != NULL)
     {
-        if (strncmp(mount_table_entry->mnt_fsname, dev_node, strlen(mount_table_entry->mnt_fsname)) == 0)
+        if (mount_table_entry->mnt_fsname && mount_table_entry->mnt_dir &&
+            strncmp(mount_table_entry->mnt_fsname, dev_node, strlen(mount_table_entry->mnt_fsname)) == 0)
         {
             mount_point = mount_table_entry->mnt_dir;
-
             break;
         }
     }
 
     endmntent(file);
 
-    return mount_point;
+    return mount_point; // Return found mount point or NULL if not found
 }
 
 void GetDeviceInfo(struct udev_device* dev)
 {
+    if (dev == NULL)
+    {
+        return; // Validate input argument
+    }
+
     usbDevice = empty;
 
     const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
@@ -145,7 +174,17 @@ void GetDeviceInfo(struct udev_device* dev)
 
 void MonitorCallback(struct udev_device* dev)
 {
+    if (dev == NULL)
+    {
+        return; // Validate input argument
+    }
+
     const char* action = udev_device_get_action(dev);
+
+    if (action == NULL)
+    {
+        return;
+    }
     
     // if device already exists "action" is NULL, otherwise it can be "add", "remove", "change", "move", "online", "offline", "bind", "unbind"
 
@@ -161,19 +200,54 @@ void MonitorCallback(struct udev_device* dev)
 
 void EnumerateDevices(struct udev* udev, int includeTTY)
 {
-    struct udev_enumerate* enumerate = udev_enumerate_new(udev);
+    if (udev == NULL)
+    {
+        return; // Validate input argument
+    }
 
-    udev_enumerate_add_match_subsystem(enumerate, "usb");
+    struct udev_enumerate* enumerate = udev_enumerate_new(udev);
+    if (!enumerate)
+    {
+        return NULL; // Check if enumeration object is created successfully
+    }
+
+    if (udev_enumerate_add_match_subsystem(enumerate, "usb") < 0)
+    {
+        udev_enumerate_unref(enumerate);
+        return NULL; // Check if enumeration operations succeed
+    }
+
     if (includeTTY)
-	    udev_enumerate_add_match_subsystem(enumerate, "tty");
-    udev_enumerate_scan_devices(enumerate);
+    {
+	    if (udev_enumerate_add_match_subsystem(enumerate, "tty") < 0)
+        {
+            udev_enumerate_unref(enumerate);
+            return NULL; // Check if enumeration operations succeed
+        }
+    }
+
+    if (udev_enumerate_scan_devices(enumerate) < 0)
+    {
+        udev_enumerate_unref(enumerate);
+        return NULL; // Check if enumeration operations succeed
+    }
 
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
+    if (!devices)
+    {
+        return NULL;
+    }
+
     struct udev_list_entry* entry;
 
     udev_list_entry_foreach(entry, devices)
     {
         const char* path = udev_list_entry_get_name(entry);
+        if (!path)
+        {
+            continue; // Skip entries without a valid path
+        }
+
         struct udev_device* dev = udev_device_new_from_syspath(udev, path);
 
         if (dev)
@@ -326,33 +400,36 @@ extern "C" {
     {
         int found = 0;
 
-        struct udev_device* dev = udev_device_new_from_syspath(g_udev, syspath);
-        if (dev)
+        if (syspath)
         {
-            struct udev_device* scsi = GetChild(g_udev, dev, "scsi", NULL);
-            if (scsi)
+            struct udev_device* dev = udev_device_new_from_syspath(g_udev, syspath);
+            if (dev)
             {
-                struct udev_device* block = GetChild(g_udev, scsi, "block", "partition");
-                if (block)
+                struct udev_device* scsi = GetChild(g_udev, dev, "scsi", NULL);
+                if (scsi)
                 {
-                    const char* block_devnode = udev_device_get_devnode(block);
-                    if (block_devnode)
+                    struct udev_device* block = GetChild(g_udev, scsi, "block", "partition");
+                    if (block)
                     {
-                        char* mount_point = FindMountPoint(block_devnode);
-                        if (mount_point)
+                        const char* block_devnode = udev_device_get_devnode(block);
+                        if (block_devnode)
                         {
-                            found = 1;
-                            mountPointCallback(mount_point);
+                            char* mount_point = FindMountPoint(block_devnode);
+                            if (mount_point)
+                            {
+                                found = 1;
+                                mountPointCallback(mount_point);
+                            }
                         }
+
+                        udev_device_unref(block);
                     }
 
-                    udev_device_unref(block);
+                    udev_device_unref(scsi);
                 }
 
-                udev_device_unref(scsi);
+                udev_device_unref(dev);
             }
-
-            udev_device_unref(dev);
         }
 
         if (!found)
