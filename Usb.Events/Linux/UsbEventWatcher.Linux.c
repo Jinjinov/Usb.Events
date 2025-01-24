@@ -291,25 +291,62 @@ int msleep(long msec)
 
 void MonitorDevices(struct udev* udev, int includeTTY)
 {
+    if (udev == NULL)
+    {
+        return; // Validate input argument
+    }
+
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
 
-    udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
+    if (!mon)
+    {
+        return;  // Monitor creation failed
+    }
+
+    if (udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL) < 0)
+    {
+        udev_monitor_unref(mon);
+        return;
+    }
+
     if (includeTTY)
-	    udev_monitor_filter_add_match_subsystem_devtype(mon, "tty", NULL);
-    udev_monitor_enable_receiving(mon);
+    {
+        if (udev_monitor_filter_add_match_subsystem_devtype(mon, "tty", NULL) < 0)
+        {
+            udev_monitor_unref(mon);
+            return;
+        }
+    }
+
+    if (udev_monitor_enable_receiving(mon) < 0)
+    {
+        udev_monitor_unref(mon); // failed to enable receiving
+        return;
+    }
 
     int fd = udev_monitor_get_fd(mon);
+    if (fd == -1) {
+        udev_monitor_unref(mon); // invalid file descriptor
+        return;
+    }
 
     // Create the pipe
-    if (pipe(pipefd) == -1) {
-        // Handle pipe creation error
-        perror("Failed to create pipe");
+    if (pipe(pipefd) == -1)
+    {
+        udev_monitor_unref(mon); // Clean up on error
         return;
     }
 
     // Set the read end of the pipe to non-blocking mode
     int flags = fcntl(pipefd[0], F_GETFL);
-    fcntl(pipefd[0], F_SETFL, flags | O_NONBLOCK);
+
+    if (fcntl(pipefd[0], F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        udev_monitor_unref(mon);  // Clean up on error
+        return;
+    }
 
     while (runLinuxWatcher)
     {
