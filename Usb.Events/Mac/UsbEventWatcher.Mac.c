@@ -91,6 +91,11 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 
 char* getMountPathByBSDName(char* bsdName)
 {
+	if (!bsdName)
+	{
+		return NULL;
+	}
+
 	DASessionRef session = DASessionCreate(kCFAllocatorDefault);
 	if (!session)
 	{
@@ -543,6 +548,12 @@ void StopMacWatcher(void)
 
 void GetMacMountPoint(const char* syspath, MountPointCallback mountPointCallback)
 {
+	if (!syspath)
+	{
+		mountPointCallback("");
+		return;
+	}
+
 	CFMutableDictionaryRef matchingDictionary = IOServiceMatching(kIOUSBInterfaceClassName);
 
 	// now specify class and subclass to iterate only through USB mass storage devices:
