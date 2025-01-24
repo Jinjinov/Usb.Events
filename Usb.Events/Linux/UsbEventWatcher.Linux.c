@@ -325,7 +325,8 @@ void MonitorDevices(struct udev* udev, int includeTTY)
     }
 
     int fd = udev_monitor_get_fd(mon);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         udev_monitor_unref(mon); // invalid file descriptor
         return;
     }

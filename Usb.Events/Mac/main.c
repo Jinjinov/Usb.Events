@@ -27,7 +27,8 @@ int main(void)
 
     int result = pthread_create(&thread, NULL, StartWatcher, NULL);
     
-    if (result != 0) {
+    if (result != 0)
+    {
         printf("Error creating the thread. Exiting program.\n");
         return -1;
     }
