@@ -91,130 +91,136 @@ void print_cfnumberref(const char* prefix, CFNumberRef cfVal)
 
 char* getMountPathByBSDName(char* bsdName)
 {
-	if (!bsdName)
-	{
-		return NULL;
-	}
+    if (!bsdName)
+    {
+        return NULL;
+    }
 
-	DASessionRef session = DASessionCreate(kCFAllocatorDefault);
-	if (!session)
-	{
-		return NULL;
-	}
+    DASessionRef session = DASessionCreate(kCFAllocatorDefault);
+    if (!session)
+    {
+        return NULL;
+    }
 
-	char* cVal;
-	int found = 0;
-	long len;
+    char* cVal;
+    int found = 0;
+    long len;
 
-	CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMainPortDefault, 0, bsdName);
-	io_iterator_t it;
-	IOServiceGetMatchingServices(kIOMainPortDefault, matchingDictionary, &it);
-	io_object_t service;
-	while ((service = IOIteratorNext(it)))
-	{
-		io_iterator_t children;
-		io_registry_entry_t child;
+    CFDictionaryRef matchingDictionary = IOBSDNameMatching(kIOMainPortDefault, 0, bsdName);
+    io_iterator_t it;
+    kern_return_t kr = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDictionary, &it);
+    if (kr != KERN_SUCCESS)
+    {
+        CFRelease(session);
+        return NULL;
+    }
 
-		IORegistryEntryGetChildIterator(service, kIOServicePlane, &children);
-		while ((child = IOIteratorNext(children)))
-		{
-			CFStringRef bsdNameChild = (CFStringRef)IORegistryEntrySearchCFProperty(child,
-				kIOServicePlane,
-				CFSTR("BSD Name"),
-				kCFAllocatorDefault,
-				kIORegistryIterateRecursively);
+    io_object_t service;
+    while ((service = IOIteratorNext(it)))
+    {
+        io_iterator_t children;
+        io_registry_entry_t child;
 
-			if (bsdNameChild)
-			{
-				len = CFStringGetLength(bsdNameChild) + 1;
-				cVal = malloc(len * sizeof(char));
-				if (cVal)
-				{
-					if (CFStringGetCString(bsdNameChild, cVal, len, kCFStringEncodingASCII))
-					{
-						found = 1;
+        IORegistryEntryGetChildIterator(service, kIOServicePlane, &children);
+        while ((child = IOIteratorNext(children)))
+        {
+            CFStringRef bsdNameChild = (CFStringRef)IORegistryEntrySearchCFProperty(child,
+                kIOServicePlane,
+                CFSTR("BSD Name"),
+                kCFAllocatorDefault,
+                kIORegistryIterateRecursively);
 
-						// Copy / Paste --->
-						DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, cVal);
-						if (disk)
-						{
-							CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
-							if (diskInfo)
-							{
-								CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
-								if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
-								{
-									// for now, return the first found partition
+            if (bsdNameChild)
+            {
+                len = CFStringGetLength(bsdNameChild) + 1;
+                cVal = malloc(len * sizeof(char));
+                if (cVal)
+                {
+                    if (CFStringGetCString(bsdNameChild, cVal, len, kCFStringEncodingASCII))
+                    {
+                        found = 1;
 
-									CFRelease(diskInfo);
-									CFRelease(disk);
-									CFRelease(session);
-									free(cVal);
+                        // Copy / Paste --->
+                        DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, cVal);
+                        if (disk)
+                        {
+                            CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
+                            if (diskInfo)
+                            {
+                                CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
+                                if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
+                                {
+                                    // for now, return the first found partition
 
-									IOObjectRelease(child);
-									IOObjectRelease(children);
-									IOObjectRelease(service);
-									IOObjectRelease(it);
+                                    CFRelease(diskInfo);
+                                    CFRelease(disk);
+                                    CFRelease(session);
+                                    free(cVal);
 
-									return buffer;
-								}
+                                    IOObjectRelease(child);
+                                    IOObjectRelease(children);
+                                    IOObjectRelease(service);
+                                    IOObjectRelease(it);
 
-								CFRelease(diskInfo);
-							}
+                                    return buffer;
+                                }
 
-							CFRelease(disk);
-						}
-						// <--- Copy / Paste
-					}
+                                CFRelease(diskInfo);
+                            }
 
-					free(cVal);
-				}
-			}
-			IOObjectRelease(child);
-		}
-		IOObjectRelease(children);
+                            CFRelease(disk);
+                        }
+                        // <--- Copy / Paste
+                    }
 
-		IOObjectRelease(service);
-	}
-	IOObjectRelease(it);
+                    free(cVal);
+                }
+            }
+            IOObjectRelease(child);
+        }
+        IOObjectRelease(children);
 
-	/*
-	The device could get name 'disk1s1, or just 'disk1'.
-	In first case, the original bsd name would be 'disk1', and the child bsd name would be 'disk1s1'.
-	In second case, there would be no child bsd names, but the original one is valid for further work (obtaining various properties).
-	*/
+        IOObjectRelease(service);
+    }
+    IOObjectRelease(it);
 
-	if (!found)
-	{
-		// Copy / Paste --->
-		DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, bsdName);
-		if (disk)
-		{
-			CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
-			if (diskInfo)
-			{
-				CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
-				if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
-				{
-					// for now, return the first found partition
+    /*
+    The device could get name 'disk1s1, or just 'disk1'.
+    In first case, the original bsd name would be 'disk1', and the child bsd name would be 'disk1s1'.
+    In second case, there would be no child bsd names, but the original one is valid for further work (obtaining various properties).
+    */
 
-					CFRelease(diskInfo);
-					CFRelease(disk);
-					CFRelease(session);
+    if (!found)
+    {
+        // Copy / Paste --->
+        DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, bsdName);
+        if (disk)
+        {
+            CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
+            if (diskInfo)
+            {
+                CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
+                if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
+                {
+                    // for now, return the first found partition
 
-					return buffer;
-				}
+                    CFRelease(diskInfo);
+                    CFRelease(disk);
+                    CFRelease(session);
 
-				CFRelease(diskInfo);
-			}
+                    return buffer;
+                }
 
-			CFRelease(disk);
-		}
-		// <--- Copy / Paste
-	}
+                CFRelease(diskInfo);
+            }
 
-	CFRelease(session);
-	return NULL;
+            CFRelease(disk);
+        }
+        // <--- Copy / Paste
+    }
+
+    CFRelease(session);
+    return NULL;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -451,48 +457,52 @@ void init_notifier(void)
 
 void configure_and_start_notifier(void)
 {
-	debug_print("Starting notifier\n");
+    debug_print("Starting notifier\n");
 
-	CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
+    CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
 
-	if (!matchDict)
-	{
-		fprintf(stderr, "Failed to create matching dictionary for kIOUSBDeviceClassName\n");
-		return;
-	}
+    if (!matchDict)
+    {
+        fprintf(stderr, "Failed to create matching dictionary for kIOUSBDeviceClassName\n");
+        return;
+    }
 
-	kern_return_t addResult;
+    kern_return_t addResult;
 
-	io_iterator_t deviceAddedIter;
-	addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &deviceAddedIter);
+    io_iterator_t deviceAddedIter;
+    addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &deviceAddedIter);
 
-	if (addResult != KERN_SUCCESS)
-	{
-		fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOMatchedNotification\n");
-		return;
-	}
+    if (addResult != KERN_SUCCESS)
+    {
+        fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOMatchedNotification\n");
+        CFRelease(matchDict);
+        return;
+    }
 
-	usb_device_added(NULL, deviceAddedIter);
+    usb_device_added(NULL, deviceAddedIter);
 
-	io_iterator_t deviceRemovedIter;
-	addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &deviceRemovedIter);
+    io_iterator_t deviceRemovedIter;
+    addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &deviceRemovedIter);
 
-	if (addResult != KERN_SUCCESS)
-	{
-		fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOTerminatedNotification\n");
-		return;
-	}
+    if (addResult != KERN_SUCCESS)
+    {
+        fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOTerminatedNotification\n");
+        CFRelease(matchDict);
+        return;
+    }
 
-	usb_device_removed(NULL, deviceRemovedIter);
+    usb_device_removed(NULL, deviceRemovedIter);
 
-	// Add the stop run loop source
+    // Add the stop run loop source
     addStopRunLoopSource();
-    
+
     // Start the run loop
     CFRunLoopRun();
-    
+
     // Remove the stop run loop source
     removeStopRunLoopSource();
+
+    CFRelease(matchDict);
 }
 
 void deinit_notifier(void)

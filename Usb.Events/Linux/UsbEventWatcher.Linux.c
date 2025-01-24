@@ -63,6 +63,7 @@ struct udev_device* GetChild(struct udev* udev, struct udev_device* parent, cons
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     if (!devices)
     {
+        udev_enumerate_unref(enumerate);
         return NULL;
     }
 
@@ -235,6 +236,7 @@ void EnumerateDevices(struct udev* udev, int includeTTY)
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     if (!devices)
     {
+        udev_enumerate_unref(enumerate);
         return NULL;
     }
 
