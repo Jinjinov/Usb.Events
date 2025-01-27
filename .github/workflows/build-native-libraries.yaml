@@ -82,7 +82,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: UsbEventWatcher-Linux-so
-          path: Usb.Events/x64/GitHub  # Download to the appropriate directory
+          path: Usb.Events  # Download to the appropriate directory
 
       - name: Restore dependencies
         run: dotnet restore Usb.Events/Usb.Events.csproj
