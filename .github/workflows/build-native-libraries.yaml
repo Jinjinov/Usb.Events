@@ -1,0 +1,30 @@
+name: Build native libraries
+
+on:
+  workflow_dispatch:  # This triggers the workflow manually
+
+jobs:
+  build:
+    runs-on: macos-latest  # We need macOS to use the CoreFoundation, DiskArbitration, IOKit frameworks
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up GCC
+        run: brew install gcc  # Ensure GCC is installed
+
+      - name: Create output directory
+        run: mkdir -p Usb.Events/x64/Release  # Create the directory if it doesn't exist
+
+      - name: Compile the .c file to .dylib
+        run: |
+          # Change to the Usb.Events directory
+          cd Usb.Events
+          
+          # Run the gcc command to compile the .c file
+          gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
+
+      - name: Verify the .dylib output
+        run: |
+          ls -l Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
