@@ -58,19 +58,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install .NET SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0'
-
       - name: Restore dependencies
         run: dotnet restore Usb.Events/Usb.Events.csproj
 
-      - name: Build the project
-        run: dotnet build Usb.Events/Usb.Events.csproj --configuration Release
-
-      - name: Pack the project
-        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg
+      - name: Pack the project with RunBuildTargets set to false
+        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false
 
       - name: Upload NuGet package as artifact
         uses: actions/upload-artifact@v4
