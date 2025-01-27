@@ -61,7 +61,7 @@ jobs:
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0'  # Adjust this based on your project's .NET version
+          dotnet-version: '9.0'
 
       - name: Restore dependencies
         run: dotnet restore Usb.Events/Usb.Events.csproj
