@@ -12,18 +12,18 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Create output directory
-        run: mkdir -p Usb.Events/x64/Release  # Create the directory if it doesn't exist
+        run: mkdir -p Usb.Events/x64/GitHub  # Create the directory if it doesn't exist
 
       - name: Compile the .c file to .dylib
         run: |
           cd Usb.Events
-          gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
+          gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/GitHub/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
       - name: Upload macOS .dylib file as artifact
         uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Mac-dylib
-          path: Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
+          path: Usb.Events/x64/GitHub/UsbEventWatcher.Mac.dylib
 
   build-linux:
     runs-on: ubuntu-latest  # Use Ubuntu runner
@@ -34,8 +34,8 @@ jobs:
 
       - name: Create output directories
         run: |
-          mkdir -p Usb.Events/x64/Release  # Create the x64 output directory if it doesn't exist
-          mkdir -p Usb.Events/x86/Release  # Create the x86 output directory if it doesn't exist
+          mkdir -p Usb.Events/x64/GitHub  # Create the x64 output directory if it doesn't exist
+          mkdir -p Usb.Events/x86/GitHub  # Create the x86 output directory if it doesn't exist
           
       - name: Install build essentials and 32/64-bit udev libraries
         run: |
@@ -48,20 +48,20 @@ jobs:
       - name: Compile the .c file to .so for x64
         run: |
           cd Usb.Events
-          gcc -shared ./Linux/UsbEventWatcher.Linux.c -o x64/Release/UsbEventWatcher.Linux.so -ludev -fPIC
+          gcc -shared ./Linux/UsbEventWatcher.Linux.c -o x64/GitHub/UsbEventWatcher.Linux.so -ludev -fPIC
 
       - name: Compile the .c file to .so for x86
         run: |
           cd Usb.Events
-          gcc -m32 -shared ./Linux/UsbEventWatcher.Linux.c -o x86/Release/UsbEventWatcher.Linux.so -ludev -fPIC
+          gcc -m32 -shared ./Linux/UsbEventWatcher.Linux.c -o x86/GitHub/UsbEventWatcher.Linux.so -ludev -fPIC
 
       - name: Upload Linux .so files as artifact
         uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Linux-so
           path: |
-            Usb.Events/x64/Release/UsbEventWatcher.Linux.so
-            Usb.Events/x86/Release/UsbEventWatcher.Linux.so
+            Usb.Events/x64/GitHub/UsbEventWatcher.Linux.so
+            Usb.Events/x86/GitHub/UsbEventWatcher.Linux.so
 
   pack-nuget:
     runs-on: windows-latest  # Use Windows runner for packing
