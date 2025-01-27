@@ -37,13 +37,12 @@ jobs:
           mkdir -p Usb.Events/x64/Release  # Create the x64 output directory if it doesn't exist
           mkdir -p Usb.Events/x86/Release  # Create the x86 output directory if it doesn't exist
           
-      - name: Install 32-bit libraries for cross-compiling
+      - name: Install build essentials and 32/64-bit udev libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y libc6-dev-i386  # Install 32-bit development libraries
-
-      - name: Install libudev-dev
-        run: sudo apt-get install -y libudev-dev  # Install libudev for udev support
+          sudo apt-get install -y build-essential
+          sudo apt-get install -y libudev-dev:i386 libudev-dev:amd64
+          sudo apt-get install -y gcc-multilib
 
       - name: Compile the .c file to .so for x64
         run: |
