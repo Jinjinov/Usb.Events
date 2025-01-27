@@ -1,30 +1,50 @@
 name: Build native libraries
 
 on:
-  workflow_dispatch:  # This triggers the workflow manually
+  workflow_dispatch:  # Trigger manually
 
 jobs:
-  build:
+  build-macos:
     runs-on: macos-latest  # We need macOS to use the CoreFoundation, DiskArbitration, IOKit frameworks
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up GCC
-        run: brew install gcc  # Ensure GCC is installed
-
       - name: Create output directory
         run: mkdir -p Usb.Events/x64/Release  # Create the directory if it doesn't exist
 
       - name: Compile the .c file to .dylib
         run: |
-          # Change to the Usb.Events directory
           cd Usb.Events
-          
-          # Run the gcc command to compile the .c file
           gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
-      - name: Verify the .dylib output
+      - name: Upload macOS .dylib file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: UsbEventWatcher-Mac-dylib
+          path: Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
+
+  build-linux:
+    runs-on: ubuntu-latest  # Use Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create output directory
+        run: mkdir -p Usb.Events/x64/Release  # Create the directory if it doesn't exist
+
+      - name: Install libudev-dev
+        run: sudo apt-get install -y libudev-dev  # Install libudev for udev support
+
+      - name: Compile the .c file to .so
         run: |
-          ls -l Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
+          cd Usb.Events
+          gcc -shared ./Linux/UsbEventWatcher.Linux.c -o x64/Release/UsbEventWatcher.Linux.so -ludev -fPIC
+
+      - name: Upload Linux .so file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: UsbEventWatcher-Linux-so
+          path: Usb.Events/x64/Release/UsbEventWatcher.Linux.so
