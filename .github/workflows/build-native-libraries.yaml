@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-macos:
-    runs-on: macos-latest  # We need macOS to use the CoreFoundation, DiskArbitration, IOKit frameworks
+    runs-on: macos-latest  # Use macOS runner
 
     steps:
       - name: Checkout code
@@ -20,7 +20,7 @@ jobs:
           gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/Release/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
       - name: Upload macOS .dylib file as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Mac-dylib
           path: Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
@@ -44,7 +44,36 @@ jobs:
           gcc -shared ./Linux/UsbEventWatcher.Linux.c -o x64/Release/UsbEventWatcher.Linux.so -ludev -fPIC
 
       - name: Upload Linux .so file as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Linux-so
           path: Usb.Events/x64/Release/UsbEventWatcher.Linux.so
+
+  pack-nuget:
+    runs-on: windows-latest  # Use Windows runner for packing
+
+    needs: [build-macos, build-linux]  # Ensure the builds for macOS and Linux are completed first
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0'  # Adjust this based on your project's .NET version
+
+      - name: Restore dependencies
+        run: dotnet restore Usb.Events/Usb.Events.csproj
+
+      - name: Build the project
+        run: dotnet build Usb.Events/Usb.Events.csproj --configuration Release
+
+      - name: Pack the project
+        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg
+
+      - name: Upload NuGet package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UsbEventWatcher-NuGet
+          path: ./nupkg/*.nupkg
