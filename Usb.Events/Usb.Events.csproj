@@ -38,6 +38,8 @@
     <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 
+  <!-- Check architecture and OS before Build -->
+
   <Target Name="CheckArchitecture" BeforeTargets="Build">
     <PropertyGroup>
       <IsOs32Bit Condition="'$([System.Environment]::Is64BitOperatingSystem)' == 'false'">true</IsOs32Bit>
@@ -65,6 +67,8 @@
     <Message Importance="High" Text="Is OS Linux: $(IsOsLinux)" />
     <Message Importance="High" Text="Is OS macOS: $(IsOsMacOS)" />
   </Target>
+
+  <!-- Build native UsbEventWatcher library on Linux and macOS -->
 
   <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
 
@@ -132,6 +136,8 @@
           WorkingDirectory=".\"
           Command="gcc $(Flags) -march=armv8-a ./Linux/UsbEventWatcher.Linux.c -o ./arm64/$(Configuration)/UsbEventWatcher.Linux.so -ludev -fPIC" />
   </Target>
+
+  <!-- Build native Linux Arm library with Docker on Windows -->
 
   <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
 
@@ -201,6 +207,8 @@
           Command="docker rm $(DockerContainerArm64)" />
 
   </Target>
+
+  <!-- Pack native Linux and macOS libraries into the NuGet -->
 
   <ItemGroup>
 
