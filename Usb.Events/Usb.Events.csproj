@@ -38,9 +38,13 @@
     <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <RunBuildTargets>true</RunBuildTargets>
+  </PropertyGroup>
+
   <!-- Check architecture and OS before Build -->
 
-  <Target Name="CheckArchitecture" BeforeTargets="Build">
+  <Target Name="CheckArchitecture" Condition="'$(RunBuildTargets)' == 'true'" BeforeTargets="Build">
     <PropertyGroup>
       <IsOs32Bit Condition="'$([System.Environment]::Is64BitOperatingSystem)' == 'false'">true</IsOs32Bit>
       <IsOs64Bit Condition="'$([System.Environment]::Is64BitOperatingSystem)' == 'true'">true</IsOs64Bit>
@@ -70,7 +74,7 @@
 
   <!-- Build native UsbEventWatcher library on Linux and macOS -->
 
-  <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT'" BeforeTargets="Build">
+  <Target Name="BuildNative" Condition="'$(OS)' != 'Windows_NT' And '$(RunBuildTargets)' == 'true'" BeforeTargets="Build">
 
     <MakeDir Directories="x86/$(Configuration);x64/$(Configuration)" />
 
@@ -139,7 +143,7 @@
 
   <!-- Build native Linux Arm library with Docker on Windows -->
 
-  <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT'" BeforeTargets="Build">
+  <Target Name="BuildNativeArm" Condition="'$(OS)' == 'Windows_NT' And '$(RunBuildTargets)' == 'true'" BeforeTargets="Build">
 
     <Exec Command="docker version --format '{{.Server.Version}}'" ConsoleToMSBuild="true" IgnoreExitCode="true" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="DockerExitCode" />
