@@ -70,8 +70,8 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore Usb.Events/Usb.Events.csproj
 
-      - name: Pack the project with RunBuildTargets set to false
-        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false
+      - name: Pack the project with RunBuildTargets set to false and LibFolder set to GitHub
+        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false /p:LibFolder=GitHub
 
       - name: Upload NuGet package as artifact
         uses: actions/upload-artifact@v4

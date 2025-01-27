@@ -40,6 +40,7 @@
 
   <PropertyGroup>
     <RunBuildTargets>true</RunBuildTargets>
+    <LibFolder>$(Configuration)</LibFolder>
   </PropertyGroup>
 
   <!-- Check architecture and OS before Build -->
@@ -218,14 +219,14 @@
 
     <!-- Intel 32 bit -->
 
-    <None Include="./x86/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+    <None Include="./x86/$(LibFolder)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x86/$(LibFolder)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x86\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
 
-    <None Include="./x86/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x86/$(Configuration)/UsbEventWatcher.Linux.so')">
+    <None Include="./x86/$(LibFolder)/UsbEventWatcher.Linux.so" Condition="Exists('./x86/$(LibFolder)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-x86\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
@@ -234,14 +235,14 @@
 
     <!-- Intel 64 bit -->
 
-    <None Include="./x64/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+    <None Include="./x64/$(LibFolder)/UsbEventWatcher.Mac.dylib" Condition="Exists('./x64/$(LibFolder)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-x64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
 
-    <None Include="./x64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./x64/$(Configuration)/UsbEventWatcher.Linux.so')">
+    <None Include="./x64/$(LibFolder)/UsbEventWatcher.Linux.so" Condition="Exists('./x64/$(LibFolder)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-x64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
@@ -250,14 +251,14 @@
 
     <!-- Arm 32 bit -->
 
-    <None Include="./arm/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+    <None Include="./arm/$(LibFolder)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm/$(LibFolder)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-arm\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
 
-    <None Include="./arm/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm/$(Configuration)/UsbEventWatcher.Linux.so')">
+    <None Include="./arm/$(LibFolder)/UsbEventWatcher.Linux.so" Condition="Exists('./arm/$(LibFolder)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-arm\native</PackagePath>
       <CopyToOutputDirectory Condition="!$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
@@ -266,14 +267,14 @@
 
     <!-- Arm 64 bit -->
 
-    <None Include="./arm64/$(Configuration)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm64/$(Configuration)/UsbEventWatcher.Mac.dylib')">
+    <None Include="./arm64/$(LibFolder)/UsbEventWatcher.Mac.dylib" Condition="Exists('./arm64/$(LibFolder)/UsbEventWatcher.Mac.dylib')">
       <Pack>true</Pack>
       <PackagePath>runtimes\osx-arm64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
       <Link>UsbEventWatcher.Mac.dylib</Link>
     </None>
 
-    <None Include="./arm64/$(Configuration)/UsbEventWatcher.Linux.so" Condition="Exists('./arm64/$(Configuration)/UsbEventWatcher.Linux.so')">
+    <None Include="./arm64/$(LibFolder)/UsbEventWatcher.Linux.so" Condition="Exists('./arm64/$(LibFolder)/UsbEventWatcher.Linux.so')">
       <Pack>true</Pack>
       <PackagePath>runtimes\linux-arm64\native</PackagePath>
       <CopyToOutputDirectory Condition="$([System.Environment]::Is64BitOperatingSystem)">PreserveNewest</CopyToOutputDirectory>
