@@ -79,6 +79,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create output directories
+        run: |
+          mkdir -p Usb.Events/arm/GitHub
+          mkdir -p Usb.Events/arm64/GitHub
+
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v2
         with:
