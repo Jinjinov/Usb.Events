@@ -10,6 +10,8 @@ COPY Linux/UsbEventWatcher.Linux.c .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+RUN gcc -march=armv8-a -shared UsbEventWatcher.Linux.c -o UsbEventWatcher.Linux.so -ludev -fPIC
+
 # executed on "docker run":
 
 ENTRYPOINT ["./entrypoint.sh"]
