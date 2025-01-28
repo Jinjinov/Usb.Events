@@ -209,13 +209,13 @@ void EnumerateDevices(struct udev* udev, int includeTTY)
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
     if (!enumerate)
     {
-        return NULL; // Check if enumeration object is created successfully
+        return; // Check if enumeration object is created successfully
     }
 
     if (udev_enumerate_add_match_subsystem(enumerate, "usb") < 0)
     {
         udev_enumerate_unref(enumerate);
-        return NULL; // Check if enumeration operations succeed
+        return; // Check if enumeration operations succeed
     }
 
     if (includeTTY)
@@ -223,21 +223,21 @@ void EnumerateDevices(struct udev* udev, int includeTTY)
 	    if (udev_enumerate_add_match_subsystem(enumerate, "tty") < 0)
         {
             udev_enumerate_unref(enumerate);
-            return NULL; // Check if enumeration operations succeed
+            return; // Check if enumeration operations succeed
         }
     }
 
     if (udev_enumerate_scan_devices(enumerate) < 0)
     {
         udev_enumerate_unref(enumerate);
-        return NULL; // Check if enumeration operations succeed
+        return; // Check if enumeration operations succeed
     }
 
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     if (!devices)
     {
         udev_enumerate_unref(enumerate);
-        return NULL;
+        return;
     }
 
     struct udev_list_entry* entry;
