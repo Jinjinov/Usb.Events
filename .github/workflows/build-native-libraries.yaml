@@ -114,6 +114,8 @@ jobs:
           ls -l Usb.Events
           ls -l Usb.Events/arm
           ls -l Usb.Events/arm64
+          ls -l Usb.Events/arm/GitHub
+          ls -l Usb.Events/arm64/GitHub
 
       - name: Upload ARM .so file as artifact
         uses: actions/upload-artifact@v4
