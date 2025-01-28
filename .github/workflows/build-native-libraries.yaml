@@ -1,7 +1,7 @@
 name: Build native libraries
 
 on:
-  workflow_dispatch:  # Trigger manually
+  workflow_dispatch:
 
 jobs:
   build-macos:
@@ -79,14 +79,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up QEMU for multi-platform builds
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm/v7, arm64/v8
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Build ARM Docker image
         run: |
-          docker build -f Usb.Events/Dockerfile.arm -t usbeventwatcher-arm .
+          docker buildx build --platform linux/arm/v7 -f Usb.Events/Dockerfile.arm -t usbeventwatcher-arm .
           docker run --rm -v "$(pwd)/Usb.Events/arm/GitHub:/output" usbeventwatcher-arm
 
       - name: Build ARM64 Docker image
         run: |
-          docker build -f Usb.Events/Dockerfile.arm64 -t usbeventwatcher-arm64 .
+          docker buildx build --platform linux/arm64/v8 -f Usb.Events/Dockerfile.arm64 -t usbeventwatcher-arm64 .
           docker run --rm -v "$(pwd)/Usb.Events/arm64/GitHub:/output" usbeventwatcher-arm64
 
       - name: Upload ARM .so file as artifact
