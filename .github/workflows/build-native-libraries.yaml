@@ -11,19 +11,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create output directory
-        run: mkdir -p Usb.Events/x64/GitHub  # Create the directory if it doesn't exist
-
-      - name: Compile the .c file to .dylib
+      - name: Create output directories
+        run: |
+          mkdir -p Usb.Events/x64/GitHub  # Create the x64 output directory if it doesn't exist
+          mkdir -p Usb.Events/arm64/GitHub  # Create the arm64 output directory if it doesn't exist
+          
+      - name: Compile the .c file to .dylib for ARM-based macOS
         run: |
           cd Usb.Events
-          gcc -shared ./Mac/UsbEventWatcher.Mac.c -o x64/GitHub/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
+          gcc -arch arm64 -shared ./Mac/UsbEventWatcher.Mac.c -o arm64/GitHub/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
-      - name: Upload macOS .dylib file as artifact
+      - name: Compile the .c file to .dylib for Intel-based macOS
+        run: |
+          cd Usb.Events
+          gcc -arch x86_64 -shared ./Mac/UsbEventWatcher.Mac.c -o x64/GitHub/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
+
+      - name: Upload macOS .dylib files as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Mac-dylib
-          path: Usb.Events/x64/GitHub/UsbEventWatcher.Mac.dylib
+          path: |
+            Usb.Events/x64/GitHub/UsbEventWatcher.Mac.dylib
+            Usb.Events/arm64/GitHub/UsbEventWatcher.Mac.dylib
 
   build-linux:
     runs-on: ubuntu-latest  # Use Ubuntu runner
@@ -55,7 +64,7 @@ jobs:
           cd Usb.Events
           gcc -m32 -shared ./Linux/UsbEventWatcher.Linux.c -o x86/GitHub/UsbEventWatcher.Linux.so -ludev -fPIC
 
-      - name: Upload Linux .so files as artifact
+      - name: Upload Linux .so files as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: UsbEventWatcher-Linux-so
@@ -72,11 +81,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
-      - name: Download macOS .dylib
+      - name: Download macOS .dylib files
         uses: actions/download-artifact@v4
         with:
           name: UsbEventWatcher-Mac-dylib
-          path: Usb.Events/x64/GitHub  # Download to the appropriate directory
+          path: Usb.Events  # Download to the appropriate directory
           
       - name: Download Linux .so files
         uses: actions/download-artifact@v4
