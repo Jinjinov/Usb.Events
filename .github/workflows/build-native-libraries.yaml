@@ -94,28 +94,13 @@ jobs:
 
       - name: Build ARM Docker image
         run: |
-          echo "Building ARM Docker image..."
           cd Usb.Events
           docker buildx build --platform linux/arm/v7 -f Dockerfile.arm -t usb-event-arm --output type=local,dest=arm/GitHub .
-          echo "Contents of arm/GitHub:"
-          ls -l arm/GitHub
 
       - name: Build ARM64 Docker image
         run: |
-          echo "Building ARM64 Docker image..."
           cd Usb.Events
           docker buildx build --platform linux/arm64/v8 -f Dockerfile.arm64 -t usb-event-arm64 --output type=local,dest=arm64/GitHub .
-          echo "Contents of arm64/GitHub:"
-          ls -l arm64/GitHub
-
-      - name: Verify directory structure
-        run: |
-          echo "Verifying directory structure..."
-          ls -l Usb.Events
-          ls -l Usb.Events/arm
-          ls -l Usb.Events/arm64
-          ls -l Usb.Events/arm/GitHub
-          ls -l Usb.Events/arm64/GitHub
 
       - name: Upload ARM .so file as artifact
         uses: actions/upload-artifact@v4
