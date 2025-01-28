@@ -90,14 +90,12 @@ jobs:
       - name: Build ARM Docker image
         run: |
           cd Usb.Events
-          docker buildx build --platform linux/arm/v7 -f Dockerfile.arm -t usbeventwatcher-arm .
-          docker run --rm -v "$(pwd)/Usb.Events/arm/GitHub:/output" usbeventwatcher-arm
+          docker buildx build --platform linux/arm/v7 -f Dockerfile.arm -t usb-event-arm --output type=local,dest=arm/GitHub .
 
       - name: Build ARM64 Docker image
         run: |
           cd Usb.Events
-          docker buildx build --platform linux/arm64/v8 -f Dockerfile.arm64 -t usbeventwatcher-arm64 .
-          docker run --rm -v "$(pwd)/Usb.Events/arm64/GitHub:/output" usbeventwatcher-arm64
+          docker buildx build --platform linux/arm64/v8 -f Dockerfile.arm64 -t usb-event-arm64 --output type=local,dest=arm64/GitHub .
 
       - name: Upload ARM .so file as artifact
         uses: actions/upload-artifact@v4
