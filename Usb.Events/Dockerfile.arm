@@ -1,3 +1,5 @@
+# executed on "docker build":
+
 FROM arm32v7/ubuntu
 
 RUN apt-get update
@@ -7,6 +9,9 @@ COPY Linux/UsbEventWatcher.Linux.c .
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
+
+# executed on "docker run":
+
 ENTRYPOINT ["./entrypoint.sh"]
 
 CMD ["arm", "Release"]
