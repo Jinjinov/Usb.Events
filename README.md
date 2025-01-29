@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="11.1.0.1" />
+            <PackageReference Include="Usb.Events" Version="11.1.1.0" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -134,6 +134,8 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 ## Version history:
 
+- 11.1.1.0 (2025-01-29):
+    - Fixed `GetChild` in Linux - thanks to [@M0ns1gn0r](https://github.com/M0ns1gn0r)
 - 11.1.0.1 (2024-01-05):
     - Added XML documentation
 - 11.1.0.0 (2023-11-30):
@@ -197,6 +199,7 @@ To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows
 
 | version  | linux-arm | linux-arm64 | linux-x64 | linux-x86 | osx-arm64 | osx-x64 |
 |:--------:|:---------:|:-----------:|:---------:|:---------:|:---------:|:-------:|
+| 11.1.1.0 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 11.1.0.1 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 11.1.0.0 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 11.0.1.1 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
