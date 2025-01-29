@@ -146,5 +146,5 @@ jobs:
       - name: Upload NuGet package as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: UsbEventWatcher-NuGet
+          name: UsbEvents-NuGet
           path: ./nupkg/*.nupkg
