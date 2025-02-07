@@ -46,6 +46,54 @@
             "stopAtEntry": false
         },
         {
+            "name": "Usb.Events.Test - Debug x64",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-test-debug",
+            "cwd": "${workspaceFolder}/Usb.Events.Test",
+            "program": "/usr/local/share/dotnet/x64/dotnet",
+            "args": "${workspaceFolder}/Usb.Events.Test/bin/Debug/net8.0/Usb.Events.Test.dll",
+            "targetArchitecture": "x86_64",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Usb.Events.Test - Release x64",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-test-release",
+            "cwd": "${workspaceFolder}/Usb.Events.Test",
+            "program": "/usr/local/share/dotnet/x64/dotnet",
+            "args": "${workspaceFolder}/Usb.Events.Test/bin/Release/net8.0/Usb.Events.Test.dll",
+            "targetArchitecture": "x86_64",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Usb.Events.NuGet.Test - Debug x64",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-nuget-test-debug",
+            "cwd": "${workspaceFolder}/Usb.Events.NuGet.Test",
+            "program": "/usr/local/share/dotnet/x64/dotnet",
+            "args": "${workspaceFolder}/Usb.Events.NuGet.Test/bin/Debug/net8.0/Usb.Events.NuGet.Test.dll",
+            "targetArchitecture": "x86_64",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Usb.Events.NuGet.Test - Release x64",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-nuget-test-release",
+            "cwd": "${workspaceFolder}/Usb.Events.NuGet.Test",
+            "program": "/usr/local/share/dotnet/x64/dotnet",
+            "args": "${workspaceFolder}/Usb.Events.NuGet.Test/bin/Release/net8.0/Usb.Events.NuGet.Test.dll",
+            "targetArchitecture": "x86_64",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
