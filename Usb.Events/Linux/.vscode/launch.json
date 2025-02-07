@@ -30,6 +30,34 @@
       "miDebuggerPath": "gdb"
     },
     {
+      "name": "Run x86",
+      "type": "cppdbg",
+      "request": "launch",
+      "preLaunchTask": "build-m32-release",
+      "program": "${workspaceFolder}/bin/UsbEventWatcher",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug x86",
+      "type": "cppdbg",
+      "request": "launch",
+      "preLaunchTask": "build-m32-debug",
+      "program": "${workspaceFolder}/bin/UsbEventWatcher",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
+    {
       "name": "Debug UsbEventWatcher.Linux.so",
       "type": "cppdbg",
       "request": "launch",
