@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-debug",
+            "label": "build-test-debug",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -16,7 +16,7 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "build-release",
+            "label": "build-test-release",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -32,6 +32,34 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "build-nuget-test-debug",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Usb.Events.NuGet.Test/Usb.Events.NuGet.Test.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary",
+                "--configuration",
+                "Debug"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-nuget-test-release",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Usb.Events.NuGet.Test/Usb.Events.NuGet.Test.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary",
+                "--configuration",
+                "Release"
+            ],
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "publish-debug",

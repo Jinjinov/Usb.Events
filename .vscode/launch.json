@@ -2,24 +2,46 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console) - Debug",
+            "name": "Usb.Events.Test - Debug",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build-debug",
-            "program": "${workspaceFolder}/Usb.Events.Test/bin/Debug/net7.0/Usb.Events.Test.dll",
+            "preLaunchTask": "build-test-debug",
+            "program": "${workspaceFolder}/Usb.Events.Test/bin/Debug/net8.0/Usb.Events.Test.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Usb.Events.Test",
             "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
-            "name": ".NET Core Launch (console) - Release",
+            "name": "Usb.Events.Test - Release",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build-release",
-            "program": "${workspaceFolder}/Usb.Events.Test/bin/Release/net7.0/Usb.Events.Test.dll",
+            "preLaunchTask": "build-test-release",
+            "program": "${workspaceFolder}/Usb.Events.Test/bin/Release/net8.0/Usb.Events.Test.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Usb.Events.Test",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Usb.Events.NuGet.Test - Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-nuget-test-debug",
+            "program": "${workspaceFolder}/Usb.Events.NuGet.Test/bin/Debug/net8.0/Usb.Events.NuGet.Test.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Usb.Events.NuGet.Test",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Usb.Events.NuGet.Test - Release",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-nuget-test-release",
+            "program": "${workspaceFolder}/Usb.Events.NuGet.Test/bin/Release/net8.0/Usb.Events.NuGet.Test.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Usb.Events.NuGet.Test",
             "console": "integratedTerminal",
             "stopAtEntry": false
         },
