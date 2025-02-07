@@ -60,26 +60,6 @@
       "miDebuggerPath": "lldb"
     },
     {
-      "name": "LLDB Run x64",
-      "type": "lldb",
-      "request": "launch",
-      "preLaunchTask": "build-x86_64-release",
-      "program": "${workspaceFolder}/bin/UsbEventWatcher",
-      "args": [],
-      "targetArchitecture": "x86_64",
-      "cwd": "${workspaceFolder}",
-    },
-    {
-      "name": "LLDB Debug x64",
-      "type": "lldb",
-      "request": "launch",
-      "preLaunchTask": "build-x86_64-debug",
-      "program": "${workspaceFolder}/bin/UsbEventWatcher",
-      "args": [],
-      "targetArchitecture": "x86_64",
-      "cwd": "${workspaceFolder}",
-    },
-    {
       "name": "LLDB Run arm64",
       "type": "lldb",
       "request": "launch",
