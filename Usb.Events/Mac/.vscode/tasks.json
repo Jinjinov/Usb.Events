@@ -6,72 +6,28 @@
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=x86_64" ],
-      "problemMatcher": {
-        "owner": "cpp",
-        "fileLocation": [ "relative", "${workspaceFolder}" ],
-        "pattern": {
-          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-          "file": 1,
-          "line": 2,
-          "column": 3,
-          "severity": 4,
-          "message": 5
-        }
-      }
+      "problemMatcher": "$gcc"
     },
     {
       "label": "build-x86_64-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=x86_64" ],
-      "problemMatcher": {
-        "owner": "cpp",
-        "fileLocation": [ "relative", "${workspaceFolder}" ],
-        "pattern": {
-          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-          "file": 1,
-          "line": 2,
-          "column": 3,
-          "severity": 4,
-          "message": 5
-        }
-      }
+      "problemMatcher": "$gcc"
     },
     {
       "label": "build-arm64-release",
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=arm64" ],
-      "problemMatcher": {
-        "owner": "cpp",
-        "fileLocation": [ "relative", "${workspaceFolder}" ],
-        "pattern": {
-          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-          "file": 1,
-          "line": 2,
-          "column": 3,
-          "severity": 4,
-          "message": 5
-        }
-      }
+      "problemMatcher": "$gcc"
     },
     {
       "label": "build-arm64-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=arm64" ],
-      "problemMatcher": {
-        "owner": "cpp",
-        "fileLocation": [ "relative", "${workspaceFolder}" ],
-        "pattern": {
-          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-          "file": 1,
-          "line": 2,
-          "column": 3,
-          "severity": 4,
-          "message": 5
-        }
-      }
+      "problemMatcher": "$gcc"
     }
   ]
 }

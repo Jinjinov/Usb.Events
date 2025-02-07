@@ -2,17 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run",
+      "name": "Run arm64",
       "type": "lldb",
       "request": "launch",
+      "preLaunchTask": "build-arm64-release",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
       "cwd": "${workspaceFolder}",
     },
     {
-      "name": "Debug",
+      "name": "Debug arm64",
       "type": "lldb",
       "request": "launch",
+      "preLaunchTask": "build-arm64-debug",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
       "cwd": "${workspaceFolder}",

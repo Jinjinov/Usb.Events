@@ -2,9 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run",
+      "name": "Run x64",
       "type": "cppdbg",
       "request": "launch",
+      "preLaunchTask": "build-m64-release",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
       "stopAtEntry": false,
@@ -15,9 +16,10 @@
       "miDebuggerPath": "gdb"
     },
     {
-      "name": "Debug",
+      "name": "Debug x64",
       "type": "cppdbg",
       "request": "launch",
+      "preLaunchTask": "build-m64-debug",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
       "stopAtEntry": false,
