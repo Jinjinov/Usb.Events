@@ -220,7 +220,7 @@ void EnumerateDevices(struct udev* udev, int includeTTY)
 
     if (includeTTY)
     {
-	    if (udev_enumerate_add_match_subsystem(enumerate, "tty") < 0)
+        if (udev_enumerate_add_match_subsystem(enumerate, "tty") < 0)
         {
             udev_enumerate_unref(enumerate);
             return; // Check if enumeration operations succeed
