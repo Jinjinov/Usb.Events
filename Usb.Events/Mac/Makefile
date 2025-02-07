@@ -3,6 +3,10 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
 FRAMEWORKS = -framework CoreFoundation -framework DiskArbitration -framework IOKit -pthread
 
+ifdef ARCH
+CFLAGS += -arch $(ARCH)
+endif
+
 # Directories
 SRC_DIR = .
 OBJ_DIR = obj

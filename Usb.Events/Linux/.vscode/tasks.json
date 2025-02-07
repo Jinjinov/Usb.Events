@@ -2,13 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build",
+      "label": "build-m64-release",
       "type": "shell",
       "command": "make",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "args": [ "ARCH=-m64" ],
       "problemMatcher": {
         "owner": "cpp",
         "fileLocation": [ "relative", "${workspaceFolder}" ],
@@ -23,14 +20,46 @@
       }
     },
     {
-      "label": "Build (Debug)",
+      "label": "build-m64-debug",
       "type": "shell",
       "command": "make",
-      "args": [ "debug" ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "args": [ "debug", "ARCH=-m64" ],
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [ "relative", "${workspaceFolder}" ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "build-m32-release",
+      "type": "shell",
+      "command": "make",
+      "args": [ "ARCH=-m32" ],
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [ "relative", "${workspaceFolder}" ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "build-m32-debug",
+      "type": "shell",
+      "command": "make",
+      "args": [ "debug", "ARCH=-m32" ],
       "problemMatcher": {
         "owner": "cpp",
         "fileLocation": [ "relative", "${workspaceFolder}" ],

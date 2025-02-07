@@ -2,13 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build",
+      "label": "build-x86_64-release",
       "type": "shell",
       "command": "make",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "args": [ "ARCH=x86_64" ],
       "problemMatcher": {
         "owner": "cpp",
         "fileLocation": [ "relative", "${workspaceFolder}" ],
@@ -23,14 +20,46 @@
       }
     },
     {
-      "label": "Build (Debug)",
+      "label": "build-x86_64-debug",
       "type": "shell",
       "command": "make",
-      "args": [ "debug" ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "args": [ "debug", "ARCH=x86_64" ],
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [ "relative", "${workspaceFolder}" ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "build-arm64-release",
+      "type": "shell",
+      "command": "make",
+      "args": [ "ARCH=arm64" ],
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": [ "relative", "${workspaceFolder}" ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "build-arm64-debug",
+      "type": "shell",
+      "command": "make",
+      "args": [ "debug", "ARCH=arm64" ],
       "problemMatcher": {
         "owner": "cpp",
         "fileLocation": [ "relative", "${workspaceFolder}" ],

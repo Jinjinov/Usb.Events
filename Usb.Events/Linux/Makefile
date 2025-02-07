@@ -3,6 +3,10 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -Wno-unused-parameter
 LDFLAGS = -ludev -pthread
 
+ifdef ARCH
+CFLAGS += $(ARCH)
+endif
+
 # Directories
 SRC_DIR = .
 OBJ_DIR = obj
