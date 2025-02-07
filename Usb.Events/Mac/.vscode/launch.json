@@ -8,6 +8,7 @@
       "preLaunchTask": "build-x86_64-release",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
+      "targetArchitecture": "x86_64",
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -22,6 +23,7 @@
       "preLaunchTask": "build-x86_64-debug",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
+      "targetArchitecture": "x86_64",
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -64,6 +66,7 @@
       "preLaunchTask": "build-x86_64-release",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
+      "targetArchitecture": "x86_64",
       "cwd": "${workspaceFolder}",
     },
     {
@@ -73,6 +76,7 @@
       "preLaunchTask": "build-x86_64-debug",
       "program": "${workspaceFolder}/bin/UsbEventWatcher",
       "args": [],
+      "targetArchitecture": "x86_64",
       "cwd": "${workspaceFolder}",
     },
     {
