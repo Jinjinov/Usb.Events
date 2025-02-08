@@ -6,28 +6,32 @@
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=-m64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-m64-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=-m64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-m32-release",
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=-m32" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-m32-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=-m32" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     }
   ]
 }

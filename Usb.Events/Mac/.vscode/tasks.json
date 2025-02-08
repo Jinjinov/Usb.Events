@@ -6,28 +6,32 @@
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=x86_64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-x86_64-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=x86_64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-arm64-release",
       "type": "shell",
       "command": "make",
       "args": [ "ARCH=arm64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     },
     {
       "label": "build-arm64-debug",
       "type": "shell",
       "command": "make",
       "args": [ "debug", "ARCH=arm64" ],
-      "problemMatcher": "$gcc"
+      "problemMatcher": "$gcc",
+      "group": "build"
     }
   ]
 }

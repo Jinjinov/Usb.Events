@@ -13,7 +13,8 @@
                 "--configuration",
                 "Debug"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": "build"
         },
         {
             "label": "build-test-release",
@@ -28,10 +29,7 @@
                 "Release"
             ],
             "problemMatcher": "$msCompile",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "build-nuget-test-debug",
@@ -45,7 +43,8 @@
                 "--configuration",
                 "Debug"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": "build"
         },
         {
             "label": "build-nuget-test-release",
@@ -59,7 +58,8 @@
                 "--configuration",
                 "Release"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": "build"
         },
         {
             "label": "publish-debug",
