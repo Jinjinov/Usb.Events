@@ -475,7 +475,7 @@ void configure_and_start_notifier(void)
     if (addResult != KERN_SUCCESS)
     {
         fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOMatchedNotification\n");
-        CFRelease(matchDict);
+        //CFRelease(matchDict); - CF_IS_OBJC exception
         return;
     }
 
@@ -487,7 +487,7 @@ void configure_and_start_notifier(void)
     if (addResult != KERN_SUCCESS)
     {
         fprintf(stderr, "IOServiceAddMatchingNotification failed for kIOTerminatedNotification\n");
-        CFRelease(matchDict);
+        //CFRelease(matchDict); - CF_IS_OBJC exception
         return;
     }
 
@@ -502,7 +502,7 @@ void configure_and_start_notifier(void)
     // Remove the stop run loop source
     removeStopRunLoopSource();
 
-    CFRelease(matchDict);
+    //CFRelease(matchDict); - CF_IS_OBJC exception
 }
 
 void deinit_notifier(void)
