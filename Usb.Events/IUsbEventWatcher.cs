@@ -44,6 +44,7 @@ namespace Usb.Events
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
         /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
         /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
-        void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false);
+        /// <param name="isUseMountPoint">Activate/Deactivate mount point with <see cref="UsbDriveMounted"/> and <see cref="UsbDriveEjected"/></param>
+        void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false, bool isUseMountPoint = true);
     }
 }
