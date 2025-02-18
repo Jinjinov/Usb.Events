@@ -78,11 +78,12 @@ namespace Usb.Events
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
         /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
         /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
-        public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
+        /// <param name="isUseMountPoint">Activate/Deactivate mount point with <see cref="UsbDriveMounted"/> and <see cref="UsbDriveEjected"/></param>
+        public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false, bool isUseMountPoint = true)
         {
             if (startImmediately)
             {
-                Start(addAlreadyPresentDevicesToList, usePnPEntity, includeTTY);
+                Start(addAlreadyPresentDevicesToList, usePnPEntity, includeTTY, isUseMountPoint);
             }
         }
 
@@ -94,7 +95,8 @@ namespace Usb.Events
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
         /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
         /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
-        public void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
+        /// <param name="isUseMountPoint">Activate/Deactivate mount point with <see cref="UsbDriveMounted"/> and <see cref="UsbDriveEjected"/></param>
+        public void Start(bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false, bool isUseMountPoint = true)
         {
             if (_isRunning)
                 return;
@@ -116,25 +118,28 @@ namespace Usb.Events
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                _mountPointTask = Task.Run(async () =>
+                if (isUseMountPoint)
                 {
-                    while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    _mountPointTask = Task.Run(async () =>
                     {
-                        try
+                        while (!_cancellationTokenSource.Token.IsCancellationRequested)
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
+                            try
                             {
-                                GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                                foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
+                                {
+                                    GetMacMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                                }
                             }
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
-                        }
+                            catch (InvalidOperationException)
+                            {
+                                // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
+                            }
 
-                        await Task.Delay(1000, _cancellationTokenSource.Token);
-                    }
-                }, _cancellationTokenSource.Token);
+                            await Task.Delay(1000, _cancellationTokenSource.Token);
+                        }
+                    }, _cancellationTokenSource.Token);
+                }
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -142,25 +147,28 @@ namespace Usb.Events
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                _mountPointTask = Task.Run(async () => 
+                if (isUseMountPoint)
                 {
-                    while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    _mountPointTask = Task.Run(async () =>
                     {
-                        try
+                        while (!_cancellationTokenSource.Token.IsCancellationRequested)
                         {
-                            foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
+                            try
                             {
-                                GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                                foreach (UsbDevice usbDevice in UsbDeviceList.Where(device => !string.IsNullOrEmpty(device.DeviceSystemPath)).ToList())
+                                {
+                                    GetLinuxMountPoint(usbDevice.DeviceSystemPath, mountPoint => SetMountPoint(usbDevice, mountPoint));
+                                }
                             }
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
-                        }
+                            catch (InvalidOperationException)
+                            {
+                                // Prevent application crash and ignore possible exception when collection was changed because this may happen by another thread or task
+                            }
 
-                        await Task.Delay(1000, _cancellationTokenSource.Token);
-                    }
-                }, _cancellationTokenSource.Token);
+                            await Task.Delay(1000, _cancellationTokenSource.Token);
+                        }
+                    }, _cancellationTokenSource.Token);
+                }
             }
         }
 
