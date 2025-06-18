@@ -449,6 +449,10 @@ extern "C" {
                 if (scsi)
                 {
                     struct udev_device* block = GetChild(g_udev, scsi, "block", "partition");
+		    if (!block)
+		    {
+		        block = GetChild(g_udev, scsi, "block", "disk");
+		    }
                     if (block)
                     {
                         const char* block_devnode = udev_device_get_devnode(block);
