@@ -127,11 +127,11 @@ sudo apt-get install gcc-multilib
 
 To build 32-bit and 64-bit ARM versions of `UsbEventWatcher.Linux.so` on Windows, you need to install Docker.
 
-## Important macOS Note:
+## Important macOS note:
 
-Due to changes in macOS Gatekeeper that occurred sometime between **May 28, 2025 and July 15, 2025**, simply building and running the code on macOS will no longer work by default.  
-macOS may block the included `.dylib` files, reporting that it "couldn’t verify the software for malicious content."  
-To use the code successfully, the `.dylib` must be **signed with a Developer ID Application certificate**.
+Due to changes in macOS Gatekeeper that were introduced sometime between May 28, 2025 and July 15, 2025, simply building and running the code on macOS no longer works by default.  
+macOS may block the included `.dylib` files, reporting that it "couldn’t verify the software for malicious content".  
+To use the code successfully, the `.dylib` must be signed with a Developer ID Application certificate.
 
 ## TO DO:
 
