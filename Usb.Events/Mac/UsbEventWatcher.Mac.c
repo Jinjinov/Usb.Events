@@ -147,8 +147,7 @@ char* getMountPathByBSDName(char* bsdName)
                             CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
                             if (diskInfo)
                             {
-                                CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(
-                                    diskInfo, kDADiskDescriptionVolumePathKey);
+                                CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
 
                                 if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
                                 {
@@ -255,7 +254,6 @@ void get_usb_device_info(io_service_t device, int newdev)
     {
         debug_print("\tDevice path: %s\n", devicepath);
 
-        // CHANGED: Safe copy with truncation to avoid overflowing the 255-byte struct field
         strncpy(usbDevice.DeviceSystemPath, devicepath, sizeof(usbDevice.DeviceSystemPath) - 1);
         usbDevice.DeviceSystemPath[sizeof(usbDevice.DeviceSystemPath) - 1] = '\0';
     }
@@ -265,13 +263,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         debug_print("\tDevice class name: %s\n", classname);
     }
 
-    CFStringRef vendorname = (CFStringRef)IORegistryEntrySearchCFProperty(
-        device
+    CFStringRef vendorname = (CFStringRef)IORegistryEntrySearchCFProperty(device
         , kIOServicePlane
         , CFSTR("USB Vendor Name")
         , NULL
-        , kIORegistryIterateRecursively |
-        kIORegistryIterateParents);
+        , kIORegistryIterateRecursively | kIORegistryIterateParents);
 
     if (vendorname)
     {
@@ -283,7 +279,6 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(vendorname, cVal, len, kCFStringEncodingASCII))
             {
-                // CHANGED: Use strncpy for safety on all string fields
                 strncpy(usbDevice.Vendor, cVal, sizeof(usbDevice.Vendor) - 1);
                 usbDevice.Vendor[sizeof(usbDevice.Vendor) - 1] = '\0';
 
@@ -295,13 +290,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         }
     }
 
-    CFNumberRef vendorId = (CFNumberRef)IORegistryEntrySearchCFProperty(
-        device
+    CFNumberRef vendorId = (CFNumberRef)IORegistryEntrySearchCFProperty(device
         , kIOServicePlane
         , CFSTR("idVendor")
         , NULL
-        , kIORegistryIterateRecursively |
-        kIORegistryIterateParents);
+        , kIORegistryIterateRecursively | kIORegistryIterateParents);
 
     if (vendorId)
     {
@@ -313,13 +306,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         }
     }
 
-    CFStringRef productname = (CFStringRef)IORegistryEntrySearchCFProperty(
-        device
+    CFStringRef productname = (CFStringRef)IORegistryEntrySearchCFProperty(device
         , kIOServicePlane
         , CFSTR("USB Product Name")
         , NULL
-        , kIORegistryIterateRecursively |
-        kIORegistryIterateParents);
+        , kIORegistryIterateRecursively | kIORegistryIterateParents);
 
     if (productname)
     {
@@ -331,7 +322,6 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(productname, cVal, len, kCFStringEncodingASCII))
             {
-                // CHANGED: Use strncpy for safety
                 strncpy(usbDevice.Product, cVal, sizeof(usbDevice.Product) - 1);
                 usbDevice.Product[sizeof(usbDevice.Product) - 1] = '\0';
 
@@ -343,13 +333,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         }
     }
 
-    CFNumberRef productId = (CFNumberRef)IORegistryEntrySearchCFProperty(
-        device
+    CFNumberRef productId = (CFNumberRef)IORegistryEntrySearchCFProperty(device
         , kIOServicePlane
         , CFSTR("idProduct")
         , NULL
-        , kIORegistryIterateRecursively |
-        kIORegistryIterateParents);
+        , kIORegistryIterateRecursively | kIORegistryIterateParents);
 
     if (productId)
     {
@@ -361,13 +349,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         }
     }
 
-    CFStringRef serialnumber = (CFStringRef)IORegistryEntrySearchCFProperty(
-        device
+    CFStringRef serialnumber = (CFStringRef)IORegistryEntrySearchCFProperty(device
         , kIOServicePlane
         , CFSTR("USB Serial Number")
         , NULL
-        , kIORegistryIterateRecursively |
-        kIORegistryIterateParents);
+        , kIORegistryIterateRecursively | kIORegistryIterateParents);
 
     if (serialnumber)
     {
@@ -379,7 +365,6 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(serialnumber, cVal, len, kCFStringEncodingASCII))
             {
-                // CHANGED: Use strncpy for safety
                 strncpy(usbDevice.SerialNumber, cVal, sizeof(usbDevice.SerialNumber) - 1);
                 usbDevice.SerialNumber[sizeof(usbDevice.SerialNumber) - 1] = '\0';
             }
@@ -485,7 +470,6 @@ void configure_and_start_notifier(void)
 {
     debug_print("Starting notifier\n");
 
-    // CHANGED: Create a distinct dictionary for Inserted events
     CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)IOServiceMatching(kIOUSBDeviceClassName);
 
     if (!matchDict)
@@ -497,9 +481,8 @@ void configure_and_start_notifier(void)
     kern_return_t addResult;
 
     io_iterator_t deviceAddedIter;
-    // CHANGED: Removed CFRetain from IOServiceMatching above, IOServiceAddMatchingNotification consumes it
-    addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added,
-                                                 NULL, &deviceAddedIter);
+
+    addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &deviceAddedIter);
 
     if (addResult != KERN_SUCCESS)
     {
@@ -567,9 +550,6 @@ void init_signal_handler(void)
 
 #ifdef __cplusplus
 extern "C" {
-
-
-
 #endif
 
 void StartMacWatcher(UsbDeviceCallback insertedCallback, UsbDeviceCallback removedCallback)
