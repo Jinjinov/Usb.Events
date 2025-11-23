@@ -502,7 +502,7 @@ void configure_and_start_notifier(void)
     }
 
     io_iterator_t deviceRemovedIter;
-    addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict,usb_device_removed, NULL, &deviceRemovedIter);
+    addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &deviceRemovedIter);
 
     if (addResult != KERN_SUCCESS)
     {
