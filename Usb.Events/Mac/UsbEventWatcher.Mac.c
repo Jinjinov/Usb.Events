@@ -246,7 +246,7 @@ void get_usb_device_info(io_service_t device, int newdev)
 
     debug_print("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
 
-    // Safe copy for DeviceName
+    // Safe copy for DeviceName and other fields
     strncpy(usbDevice.DeviceName, devicename, sizeof(usbDevice.DeviceName) - 1);
     usbDevice.DeviceName[sizeof(usbDevice.DeviceName) - 1] = '\0';
 
@@ -502,8 +502,7 @@ void configure_and_start_notifier(void)
     }
 
     io_iterator_t deviceRemovedIter;
-    addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict,
-                                                 usb_device_removed, NULL, &deviceRemovedIter);
+    addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict,usb_device_removed, NULL, &deviceRemovedIter);
 
     if (addResult != KERN_SUCCESS)
     {
