@@ -148,6 +148,7 @@ char* getMountPathByBSDName(char* bsdName)
                             if (diskInfo)
                             {
                                 CFURLRef fspath = (CFURLRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumePathKey);
+
                                 if (CFURLGetFileSystemRepresentation(fspath, false, (UInt8*)buffer, 1024))
                                 {
                                     // for now, return the first found partition
@@ -228,7 +229,7 @@ char* getMountPathByBSDName(char* bsdName)
 void get_usb_device_info(io_service_t device, int newdev)
 {
     io_name_t devicename;
-    io_name_t devicepath;
+    io_string_t devicepath; // CHANGED: io_name_t (128 bytes) -> io_string_t (512 bytes)
     io_name_t classname;
 
     char* cVal;
@@ -245,13 +246,16 @@ void get_usb_device_info(io_service_t device, int newdev)
 
     debug_print("USB device %s: %s\n", newdev ? "FOUND" : "REMOVED", devicename);
 
-    strcpy(usbDevice.DeviceName, devicename);
+    // Safe copy for DeviceName and other fields
+    strncpy(usbDevice.DeviceName, devicename, sizeof(usbDevice.DeviceName) - 1);
+    usbDevice.DeviceName[sizeof(usbDevice.DeviceName) - 1] = '\0';
 
     if (IORegistryEntryGetPath(device, kIOServicePlane, devicepath) == KERN_SUCCESS)
     {
         debug_print("\tDevice path: %s\n", devicepath);
 
-        strcpy(usbDevice.DeviceSystemPath, devicepath);
+        strncpy(usbDevice.DeviceSystemPath, devicepath, sizeof(usbDevice.DeviceSystemPath) - 1);
+        usbDevice.DeviceSystemPath[sizeof(usbDevice.DeviceSystemPath) - 1] = '\0';
     }
 
     if (IOObjectGetClass(device, classname) == KERN_SUCCESS)
@@ -275,8 +279,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(vendorname, cVal, len, kCFStringEncodingASCII))
             {
-                strcpy(usbDevice.Vendor, cVal);
-                strcpy(usbDevice.VendorDescription, cVal);
+                strncpy(usbDevice.Vendor, cVal, sizeof(usbDevice.Vendor) - 1);
+                usbDevice.Vendor[sizeof(usbDevice.Vendor) - 1] = '\0';
+
+                strncpy(usbDevice.VendorDescription, cVal, sizeof(usbDevice.VendorDescription) - 1);
+                usbDevice.VendorDescription[sizeof(usbDevice.VendorDescription) - 1] = '\0';
             }
 
             free(cVal);
@@ -315,8 +322,11 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(productname, cVal, len, kCFStringEncodingASCII))
             {
-                strcpy(usbDevice.Product, cVal);
-                strcpy(usbDevice.ProductDescription, cVal);
+                strncpy(usbDevice.Product, cVal, sizeof(usbDevice.Product) - 1);
+                usbDevice.Product[sizeof(usbDevice.Product) - 1] = '\0';
+
+                strncpy(usbDevice.ProductDescription, cVal, sizeof(usbDevice.ProductDescription) - 1);
+                usbDevice.ProductDescription[sizeof(usbDevice.ProductDescription) - 1] = '\0';
             }
 
             free(cVal);
@@ -355,7 +365,8 @@ void get_usb_device_info(io_service_t device, int newdev)
         {
             if (CFStringGetCString(serialnumber, cVal, len, kCFStringEncodingASCII))
             {
-                strcpy(usbDevice.SerialNumber, cVal);
+                strncpy(usbDevice.SerialNumber, cVal, sizeof(usbDevice.SerialNumber) - 1);
+                usbDevice.SerialNumber[sizeof(usbDevice.SerialNumber) - 1] = '\0';
             }
 
             free(cVal);
@@ -423,10 +434,10 @@ void addStopRunLoopSource(void)
         .cancel = NULL,
         .perform = stopRunLoopSourceCallback
     };
-    
+
     // Create the run loop source
     stopRunLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &sourceContext);
-    
+
     // Add the run loop source to the current run loop
     CFRunLoopAddSource(runLoop, stopRunLoopSource, kCFRunLoopDefaultMode);
 }
@@ -438,7 +449,7 @@ void removeStopRunLoopSource(void)
     {
         // Remove the run loop source from the current run loop
         CFRunLoopRemoveSource(runLoop, stopRunLoopSource, kCFRunLoopDefaultMode);
-        
+
         // Release the run loop source
         CFRelease(stopRunLoopSource);
         stopRunLoopSource = NULL;
@@ -459,7 +470,7 @@ void configure_and_start_notifier(void)
 {
     debug_print("Starting notifier\n");
 
-    CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)CFRetain(IOServiceMatching(kIOUSBDeviceClassName));
+    CFMutableDictionaryRef matchDict = (CFMutableDictionaryRef)IOServiceMatching(kIOUSBDeviceClassName);
 
     if (!matchDict)
     {
@@ -470,6 +481,7 @@ void configure_and_start_notifier(void)
     kern_return_t addResult;
 
     io_iterator_t deviceAddedIter;
+
     addResult = IOServiceAddMatchingNotification(notificationPort, kIOMatchedNotification, matchDict, usb_device_added, NULL, &deviceAddedIter);
 
     if (addResult != KERN_SUCCESS)
@@ -480,6 +492,14 @@ void configure_and_start_notifier(void)
     }
 
     usb_device_added(NULL, deviceAddedIter);
+
+    // CHANGED: Create a NEW dictionary for Removed events (DO NOT REUSE matchDict)
+    matchDict = (CFMutableDictionaryRef)IOServiceMatching(kIOUSBDeviceClassName);
+    if (!matchDict)
+    {
+        fprintf(stderr, "Failed to create matching dictionary for kIOUSBDeviceClassName (Removed)\n");
+        return;
+    }
 
     io_iterator_t deviceRemovedIter;
     addResult = IOServiceAddMatchingNotification(notificationPort, kIOTerminatedNotification, matchDict, usb_device_removed, NULL, &deviceRemovedIter);
@@ -550,7 +570,7 @@ void StopMacWatcher(void)
     {
         // Signal the run loop source to stop the run loop
         CFRunLoopSourceSignal(stopRunLoopSource);
-        
+
         // Wake up the run loop to process the signal immediately
         CFRunLoopWakeUp(runLoop);
     }
