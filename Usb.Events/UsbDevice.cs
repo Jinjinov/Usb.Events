@@ -6,31 +6,31 @@ namespace Usb.Events
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct UsbDeviceData
     {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string DeviceName;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string DeviceSystemPath;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string Product;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string ProductDescription;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string ProductID;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string SerialNumber;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string Vendor;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string VendorDescription;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
         public string VendorID;
     }
 

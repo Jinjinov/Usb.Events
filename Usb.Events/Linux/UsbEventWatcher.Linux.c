@@ -11,15 +11,15 @@
 
 typedef struct UsbDeviceData
 {
-    char DeviceName[255];
-    char DeviceSystemPath[255];
-    char Product[255];
-    char ProductDescription[255];
-    char ProductID[255];
-    char SerialNumber[255];
-    char Vendor[255];
-    char VendorDescription[255];
-    char VendorID[255];
+    char DeviceName[512];
+    char DeviceSystemPath[512];
+    char Product[512];
+    char ProductDescription[512];
+    char ProductID[512];
+    char SerialNumber[512];
+    char Vendor[512];
+    char VendorDescription[512];
+    char VendorID[512];
 } UsbDeviceData;
 
 UsbDeviceData usbDevice;
@@ -114,7 +114,8 @@ char* FindMountPoint(const char* dev_node)
 
     while ((mount_table_entry = getmntent(file)) != NULL)
     {
-        if (mount_table_entry->mnt_fsname && mount_table_entry->mnt_dir &&
+        if (mount_table_entry->mnt_fsname && 
+            mount_table_entry->mnt_dir &&
             strncmp(mount_table_entry->mnt_fsname, dev_node, strlen(mount_table_entry->mnt_fsname)) == 0)
         {
             mount_point = mount_table_entry->mnt_dir;
@@ -138,39 +139,39 @@ void GetDeviceInfo(struct udev_device* dev)
 
     const char* DeviceName = udev_device_get_property_value(dev, "DEVNAME");
     if (DeviceName)
-        strcpy(usbDevice.DeviceName, DeviceName);
+        snprintf(usbDevice.DeviceName, sizeof(usbDevice.DeviceName), "%s", DeviceName);
 
     const char* DeviceSystemPath = udev_device_get_syspath(dev); //udev_device_get_property_value(dev, "DEVPATH");
     if (DeviceSystemPath)
-        strcpy(usbDevice.DeviceSystemPath, DeviceSystemPath);
+        snprintf(usbDevice.DeviceSystemPath, sizeof(usbDevice.DeviceSystemPath), "%s", DeviceSystemPath);
 
     const char* Product = udev_device_get_property_value(dev, "ID_MODEL");
     if (Product)
-        strcpy(usbDevice.Product, Product);
+        snprintf(usbDevice.Product, sizeof(usbDevice.Product), "%s", Product);
 
     const char* ProductDescription = udev_device_get_property_value(dev, "ID_MODEL_FROM_DATABASE");
     if (ProductDescription)
-        strcpy(usbDevice.ProductDescription, ProductDescription);
+        snprintf(usbDevice.ProductDescription, sizeof(usbDevice.ProductDescription), "%s", ProductDescription);
 
     const char* ProductID = udev_device_get_property_value(dev, "ID_MODEL_ID");
     if (ProductID)
-        strcpy(usbDevice.ProductID, ProductID);
+        snprintf(usbDevice.ProductID, sizeof(usbDevice.ProductID), "%s", ProductID);
 
     const char* SerialNumber = udev_device_get_property_value(dev, "ID_SERIAL_SHORT");
     if (SerialNumber)
-        strcpy(usbDevice.SerialNumber, SerialNumber);
+        snprintf(usbDevice.SerialNumber, sizeof(usbDevice.SerialNumber), "%s", SerialNumber);
 
     const char* Vendor = udev_device_get_property_value(dev, "ID_VENDOR");
     if (Vendor)
-        strcpy(usbDevice.Vendor, Vendor);
+        snprintf(usbDevice.Vendor, sizeof(usbDevice.Vendor), "%s", Vendor);
 
     const char* VendorDescription = udev_device_get_property_value(dev, "ID_VENDOR_FROM_DATABASE");
     if (VendorDescription)
-        strcpy(usbDevice.VendorDescription, VendorDescription);
+        snprintf(usbDevice.VendorDescription, sizeof(usbDevice.VendorDescription), "%s", VendorDescription);
 
     const char* VendorID = udev_device_get_property_value(dev, "ID_VENDOR_ID");
     if (VendorID)
-        strcpy(usbDevice.VendorID, VendorID);
+        snprintf(usbDevice.VendorID, sizeof(usbDevice.VendorID), "%s", VendorID);
 }
 
 void MonitorCallback(struct udev_device* dev)
