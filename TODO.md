@@ -1,3 +1,5 @@
+# Add serial port name (COM* - /dev/tty* - /dev/cu.*) for serial port connection
+
 If I understand correctly, you want to get the serial port name (like `/dev/cu.usbserial-1420`) directly from the `UsbDevice` object when a USB device is detected on macOS, so you can easily create and open a serial port connection without having to separately call `SerialPort.GetPortNames()`.
 
 **The Problem:**
@@ -6,14 +8,14 @@ If I understand correctly, you want to get the serial port name (like `/dev/cu.u
 - These are two different naming schemes, so there's no obvious mapping between them
 
 ---------------------------------------------------------------------------------------------------
-
+```
 /// <summary>
 /// Serial port name (device file path on macOS/Linux)
 /// </summary>
 public string PortName { get; internal set; } = string.Empty;
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 _mountPointTask = Task.Run(async () =>
 {
     while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -35,9 +37,9 @@ _mountPointTask = Task.Run(async () =>
         await Task.Delay(1000, _cancellationTokenSource.Token);
     }
 }, _cancellationTokenSource.Token);
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 private void SetPortName(UsbDevice usbDevice, string portName)
 {
     if (!string.IsNullOrEmpty(portName) && string.IsNullOrEmpty(usbDevice.PortName))
@@ -48,9 +50,9 @@ private void SetPortName(UsbDevice usbDevice, string portName)
 
 [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
 static extern void GetMacPortName(string syspath, MountPointCallback portNameCallback);
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 void GetMacPortName(const char* syspath, MountPointCallback portNameCallback)
 {
     if (!syspath)
@@ -153,9 +155,9 @@ void GetMacPortName(const char* syspath, MountPointCallback portNameCallback)
     if (!found)
         portNameCallback("");
 }
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 IUsbEventWatcher usbEvent = new UsbEventWatcher();
 
 usbEvent.UsbDeviceAdded += (sender, device) =>
@@ -170,9 +172,9 @@ usbEvent.UsbDeviceAdded += (sender, device) =>
         // Use serial port...
     }
 };
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 // Here's a complete working solution to add serial port name detection to the UsbDevice class:
 
 using System;
@@ -214,17 +216,17 @@ class Program
         }
     }
 }
-
+```
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
-
+```
 /// <summary>
 /// Serial port name (COM port on Windows, /dev/ttyUSB*/ttyACM* on Linux, /dev/cu.* on macOS)
 /// </summary>
 public string PortName { get; internal set; } = string.Empty;
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     if (addAlreadyPresentDevicesToList)
@@ -287,9 +289,9 @@ else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         }
     }, _cancellationTokenSource.Token);
 }
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 private static string GetWindowsSerialPortName(string serialNumber)
 {
     try
@@ -310,9 +312,9 @@ private static string GetWindowsSerialPortName(string serialNumber)
 
     return string.Empty;
 }
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 private void SetPortName(UsbDevice usbDevice, string portName)
 {
     if (!string.IsNullOrEmpty(portName) && string.IsNullOrEmpty(usbDevice.PortName))
@@ -326,9 +328,9 @@ static extern void GetLinuxPortName(string syspath, MountPointCallback portNameC
 
 [DllImport("UsbEventWatcher.Mac.dylib", CallingConvention = CallingConvention.Cdecl)]
 static extern void GetMacPortName(string syspath, MountPointCallback portNameCallback);
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 void GetLinuxPortName(const char* syspath, MountPointCallback portNameCallback)
 {
     if (!syspath)
@@ -383,9 +385,9 @@ void GetLinuxPortName(const char* syspath, MountPointCallback portNameCallback)
     else
         portNameCallback("");
 }
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 void GetMacPortName(const char* syspath, MountPointCallback portNameCallback)
 {
     if (!syspath)
@@ -456,9 +458,9 @@ void GetMacPortName(const char* syspath, MountPointCallback portNameCallback)
     if (!found)
         portNameCallback("");
 }
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 IUsbEventWatcher usbEvent = new UsbEventWatcher();
 
 usbEvent.UsbDeviceAdded += (sender, device) =>
@@ -477,12 +479,12 @@ usbEvent.UsbDeviceAdded += (sender, device) =>
         serialPort.Open();
     }
 };
-
+```
 ---------------------------------------------------------------------------------------------------
-
+```
 Platform	Format				Example
 Windows		COM port number		COM3, COM4
 Linux		/dev path			/dev/ttyUSB0, /dev/ttyACM0
 macOS		/dev path			/dev/cu.usbserial-1420, /dev/cu.usbmodem14201
-
+```
 ---------------------------------------------------------------------------------------------------
