@@ -51,9 +51,21 @@ UsbEventWatcher(
 ```
 
 - Set `startImmediately` to `false` if you don't want to start immediately, then call `Start()`.
+
+The following options apply only when `startImmediately` is `true`, when starting later, pass them to `Start()` instead:
+
 - Set `addAlreadyPresentDevicesToList` to `true` to include already present devices in `UsbDeviceList`.
 - Set `usePnPEntity` to `true` to query `Win32_PnPEntity` instead of `Win32_USBControllerDevice` in Windows.
 - Set `includeTTY` to `true` to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
+
+`Start()` has the same parameters:
+
+```
+Start(
+    bool addAlreadyPresentDevicesToList = false, 
+    bool usePnPEntity = false, 
+    bool includeTTY = false)
+```
 
 ### Using `Win32_PnPEntity` vs `Win32_USBControllerDevice`
 

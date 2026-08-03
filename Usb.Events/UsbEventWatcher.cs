@@ -74,7 +74,8 @@ namespace Usb.Events
         /// <summary>
         /// Main Usb.Events class
         /// </summary>
-        /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start()</param>
+        /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start(). 
+        /// The following options apply only when startImmediately is true, when starting later, pass them to Start() instead.</param>
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
         /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
         /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
