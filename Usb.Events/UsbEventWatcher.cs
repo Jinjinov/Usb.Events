@@ -74,16 +74,21 @@ namespace Usb.Events
         /// <summary>
         /// Main Usb.Events class
         /// </summary>
-        /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start(). 
+        /// <param name="startImmediately">Set startImmediately to false if you don't want to start immediately, then call Start().
         /// The following options apply only when startImmediately is true, when starting later, pass them to Start() instead.</param>
         /// <param name="addAlreadyPresentDevicesToList">Set addAlreadyPresentDevicesToList to true to include already present devices in UsbDeviceList</param>
         /// <param name="usePnPEntity">Set usePnPEntity to true to query Win32_PnPEntity instead of Win32_USBControllerDevice in Windows</param>
         /// <param name="includeTTY">Set includeTTY to true to monitor the TTY subsystem in Linux (besides the USB subsystem)</param>
+        /// <exception cref="ArgumentException">Thrown when startImmediately is false and any of the other options is true, because those options would be ignored.</exception>
         public UsbEventWatcher(bool startImmediately = true, bool addAlreadyPresentDevicesToList = false, bool usePnPEntity = false, bool includeTTY = false)
         {
             if (startImmediately)
             {
                 Start(addAlreadyPresentDevicesToList, usePnPEntity, includeTTY);
+            }
+            else if (addAlreadyPresentDevicesToList || usePnPEntity || includeTTY)
+            {
+                throw new ArgumentException("When startImmediately is false, the addAlreadyPresentDevicesToList, usePnPEntity and includeTTY options are ignored. Pass them to Start() instead.");
             }
         }
 

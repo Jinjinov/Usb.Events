@@ -58,6 +58,8 @@ The following options apply only when `startImmediately` is `true`, when startin
 - Set `usePnPEntity` to `true` to query `Win32_PnPEntity` instead of `Win32_USBControllerDevice` in Windows.
 - Set `includeTTY` to `true` to monitor the `TTY` subsystem in Linux (besides the `USB` subsystem).
 
+Setting any of them to `true` while `startImmediately` is `false` throws an `ArgumentException`.
+
 `Start()` has the same parameters:
 
 ```
