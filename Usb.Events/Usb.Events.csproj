@@ -238,7 +238,7 @@
     <Message Importance="High" Text="Recorded native source hash: $(NativeSourceHash)" />
   </Target>
 
-  <Target Name="VerifyNativeLibrariesCurrent" DependsOnTargets="ComputeNativeSourceHash" BeforeTargets="Pack">
+  <Target Name="VerifyNativeLibrariesCurrent" DependsOnTargets="ComputeNativeSourceHash" BeforeTargets="GenerateNuspec;Pack">
     <Error Condition="!Exists('natives.sha256')"
            Text="natives.sha256 is missing, so the native libraries cannot be shown to match Linux/UsbEventWatcher.Linux.c and Mac/UsbEventWatcher.Mac.c. Run the &quot;Build native libraries&quot; workflow - it rebuilds the binaries, commits them and records the hash - then pull its commit before packing." />
     <ReadLinesFromFile File="natives.sha256">
