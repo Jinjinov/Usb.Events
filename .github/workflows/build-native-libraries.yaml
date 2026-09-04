@@ -157,7 +157,20 @@ jobs:
       - name: Record the hash of the sources the native libraries were built from
         run: dotnet msbuild Usb.Events/Usb.Events.csproj -t:RecordNativeSourceHash
 
-      - name: Commit the native libraries so that a local pack cannot ship stale ones
+      - name: Pack the project with RunBuildTargets set to false and LibFolder set to GitHub
+        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false /p:LibFolder=GitHub
+
+      - name: Upload NuGet package as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: UsbEvents-NuGet
+          path: ./nupkg/*.nupkg
+
+      - name: Copy the package into the NuGet test project
+        shell: bash
+        run: cp nupkg/*.nupkg Usb.Events.NuGet.Test/
+
+      - name: Commit the native libraries and the package
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -169,18 +182,10 @@ jobs:
           git add Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
           git add Usb.Events/arm64/Release/UsbEventWatcher.Mac.dylib
           git add Usb.Events/natives.sha256
+          git add Usb.Events.NuGet.Test/*.nupkg
           if git diff --cached --quiet; then
-            echo "Native libraries are already up to date, nothing to commit"
+            echo "Native libraries and package are already up to date, nothing to commit"
           else
-            git commit -m "Rebuild native libraries from ${GITHUB_SHA::7}"
+            git commit -m "Rebuild native libraries and package from ${GITHUB_SHA::7}"
             git push origin HEAD:"${GITHUB_REF_NAME}"
           fi
-
-      - name: Pack the project with RunBuildTargets set to false and LibFolder set to GitHub
-        run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false /p:LibFolder=GitHub
-
-      - name: Upload NuGet package as artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: UsbEvents-NuGet
-          path: ./nupkg/*.nupkg
