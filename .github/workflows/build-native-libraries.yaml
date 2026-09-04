@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Create output directories
         run: |
@@ -27,7 +27,7 @@ jobs:
           gcc -arch x86_64 -shared ./Mac/UsbEventWatcher.Mac.c -o x64/GitHub/UsbEventWatcher.Mac.dylib -framework CoreFoundation -framework DiskArbitration -framework IOKit
 
       - name: Upload macOS .dylib files as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: UsbEventWatcher-Mac-dylib
           path: |
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Create output directories
         run: |
@@ -65,7 +65,7 @@ jobs:
           gcc -m32 -shared ./Linux/UsbEventWatcher.Linux.c -o x86/GitHub/UsbEventWatcher.Linux.so -ludev -fPIC
 
       - name: Upload Linux .so files as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: UsbEventWatcher-Linux-so
           path: |
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Create output directories
         run: |
@@ -85,12 +85,12 @@ jobs:
           mkdir -p Usb.Events/arm64/GitHub
 
       - name: Set up QEMU for multi-platform builds
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
         with:
-          platforms: arm/v7, arm64/v8
+          platforms: arm,arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
 
       - name: Build ARM Docker image
         run: |
@@ -103,7 +103,7 @@ jobs:
           docker buildx build --platform linux/arm64/v8 -f Dockerfile.arm64 -t usb-event-arm64 --output type=local,dest=arm64/GitHub .
 
       - name: Upload ARM .so file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: UsbEventWatcher-ARM-so
           path: |
@@ -115,24 +115,27 @@ jobs:
 
     needs: [build-macos, build-linux, build-arm]
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         
       - name: Download macOS .dylib artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: UsbEventWatcher-Mac-dylib
           path: Usb.Events
 
       - name: Download Linux .so artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: UsbEventWatcher-Linux-so
           path: Usb.Events
 
       - name: Download ARM .so artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: UsbEventWatcher-ARM-so
           path: Usb.Events
@@ -140,11 +143,44 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore Usb.Events/Usb.Events.csproj
 
+      - name: Copy the freshly built native libraries over the checked-in ones
+        shell: bash
+        run: |
+          cd Usb.Events
+          cp x86/GitHub/UsbEventWatcher.Linux.so    x86/Release/UsbEventWatcher.Linux.so
+          cp x64/GitHub/UsbEventWatcher.Linux.so    x64/Release/UsbEventWatcher.Linux.so
+          cp arm/GitHub/UsbEventWatcher.Linux.so    arm/Release/UsbEventWatcher.Linux.so
+          cp arm64/GitHub/UsbEventWatcher.Linux.so  arm64/Release/UsbEventWatcher.Linux.so
+          cp x64/GitHub/UsbEventWatcher.Mac.dylib   x64/Release/UsbEventWatcher.Mac.dylib
+          cp arm64/GitHub/UsbEventWatcher.Mac.dylib arm64/Release/UsbEventWatcher.Mac.dylib
+
+      - name: Record the hash of the sources the native libraries were built from
+        run: dotnet msbuild Usb.Events/Usb.Events.csproj -t:RecordNativeSourceHash
+
+      - name: Commit the native libraries so that a local pack cannot ship stale ones
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Usb.Events/x86/Release/UsbEventWatcher.Linux.so
+          git add Usb.Events/x64/Release/UsbEventWatcher.Linux.so
+          git add Usb.Events/arm/Release/UsbEventWatcher.Linux.so
+          git add Usb.Events/arm64/Release/UsbEventWatcher.Linux.so
+          git add Usb.Events/x64/Release/UsbEventWatcher.Mac.dylib
+          git add Usb.Events/arm64/Release/UsbEventWatcher.Mac.dylib
+          git add Usb.Events/natives.sha256
+          if git diff --cached --quiet; then
+            echo "Native libraries are already up to date, nothing to commit"
+          else
+            git commit -m "Rebuild native libraries from ${GITHUB_SHA::7}"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
+
       - name: Pack the project with RunBuildTargets set to false and LibFolder set to GitHub
         run: dotnet pack Usb.Events/Usb.Events.csproj --configuration Release --output ./nupkg /p:RunBuildTargets=false /p:LibFolder=GitHub
 
       - name: Upload NuGet package as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: UsbEvents-NuGet
           path: ./nupkg/*.nupkg

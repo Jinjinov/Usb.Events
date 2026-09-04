@@ -7,7 +7,7 @@ Subscribe to the Inserted and Removed events to be notified when a USB drive is 
 1. Include NuGet package from https://www.nuget.org/packages/Usb.Events
 
         <ItemGroup>
-            <PackageReference Include="Usb.Events" Version="100.0.0.0" />
+            <PackageReference Include="Usb.Events" Version="100.0.0.1" />
         </ItemGroup>
         
 2. Subscribe to events:
@@ -154,6 +154,8 @@ To use the code successfully, the `.dylib` must be signed with a Developer ID Ap
 
 ## Version history:
 
+- 100.0.0.1 (2026-09-04):
+    - Fixed regression on Linux and macOS - thanks to [@tzarc](https://github.com/tzarc)
 - 100.0.0.0 (2026-08-04):
     - Fixed `UsbEventWatcher` constructor - thanks to [@nterreaux](https://github.com/nterreaux)
 - 11.1.1.1 (2025-11-30):
@@ -225,6 +227,7 @@ To use the code successfully, the `.dylib` must be signed with a Developer ID Ap
 
 | version   | linux-arm | linux-arm64 | linux-x64 | linux-x86 | osx-arm64 | osx-x64 |
 |:---------:|:---------:|:-----------:|:---------:|:---------:|:---------:|:-------:|
+| 100.0.0.1 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 100.0.0.0 |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 11.1.1.1  |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |
 | 11.1.1.0  |     ✔     |      ✔      |     ✔     |     ✔     |     ✔     |    ✔    |

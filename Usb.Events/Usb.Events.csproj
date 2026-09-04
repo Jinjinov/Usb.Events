@@ -9,8 +9,8 @@
   <PropertyGroup>
     <Product>Usb.Events</Product>
     <PackageId>Usb.Events</PackageId>
-    <PackageVersion>100.0.0.0</PackageVersion>
-    <Version>100.0.0.0</Version>
+    <PackageVersion>100.0.0.1</PackageVersion>
+    <Version>100.0.0.1</Version>
     <Authors>Jinjinov</Authors>
     <Description>Subscribe to events to be notified when a USB drive is mounted in or ejected, or when a USB device is added or removed. Usb.Events is a .NET Standard 2.0 library and uses WMI on Windows, libudev on Linux and IOKit on macOS.</Description>
     <Copyright>Copyright (c) Jinjinov 2020-2026</Copyright>
@@ -211,6 +211,41 @@
           WorkingDirectory=".\"
           Command="docker rm $(DockerContainerArm64)" />
 
+  </Target>
+
+  <!-- Verify that the checked-in native libraries were built from the current native sources -->
+
+  <ItemGroup>
+    <NativeSource Include="Linux/UsbEventWatcher.Linux.c" />
+    <NativeSource Include="Linux/UsbEventWatcher.Linux.h" />
+    <NativeSource Include="Mac/UsbEventWatcher.Mac.c" />
+    <NativeSource Include="Mac/UsbEventWatcher.Mac.h" />
+  </ItemGroup>
+
+  <Target Name="ComputeNativeSourceHash">
+    <GetFileHash Files="@(NativeSource)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="NativeSourceHashed" />
+    </GetFileHash>
+    <PropertyGroup>
+      <NativeSourceHash>@(NativeSourceHashed->'%(FileHash)')</NativeSourceHash>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Run by the "Build native libraries" workflow after it commits freshly built binaries -->
+
+  <Target Name="RecordNativeSourceHash" DependsOnTargets="ComputeNativeSourceHash">
+    <WriteLinesToFile File="natives.sha256" Lines="$(NativeSourceHash)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <Message Importance="High" Text="Recorded native source hash: $(NativeSourceHash)" />
+  </Target>
+
+  <Target Name="VerifyNativeLibrariesCurrent" DependsOnTargets="ComputeNativeSourceHash" BeforeTargets="Pack">
+    <Error Condition="!Exists('natives.sha256')"
+           Text="natives.sha256 is missing, so the native libraries cannot be shown to match Linux/UsbEventWatcher.Linux.c and Mac/UsbEventWatcher.Mac.c. Run the &quot;Build native libraries&quot; workflow - it rebuilds the binaries, commits them and records the hash - then pull its commit before packing." />
+    <ReadLinesFromFile File="natives.sha256">
+      <Output TaskParameter="Lines" PropertyName="RecordedNativeSourceHash" />
+    </ReadLinesFromFile>
+    <Error Condition="'$(NativeSourceHash)' != '$(RecordedNativeSourceHash)'"
+           Text="The native sources have changed since the native libraries were last built, so packing would ship binaries whose struct layout does not match UsbDeviceData. Run the &quot;Build native libraries&quot; workflow and pull its commit before packing." />
   </Target>
 
   <!-- Pack native Linux and macOS libraries into the NuGet -->
