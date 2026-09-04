@@ -1,0 +1,7 @@
+# The native sources are hashed by the VerifyNativeLibrariesCurrent target in
+# Usb.Events.csproj, and the hash is recorded by the "Build native libraries"
+# workflow, whose pack-nuget job runs on windows-latest with core.autocrlf=true.
+# Without this, that job checks the sources out as CRLF and records hashes that
+# no Linux or macOS working copy can reproduce, so a local pack always fails.
+*.c text eol=lf
+*.h text eol=lf
