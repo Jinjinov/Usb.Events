@@ -1,3 +1,5 @@
+* text=auto eol=lf
+
 # The native sources are hashed by the VerifyNativeLibrariesCurrent target in
 # Usb.Events.csproj, and the hash is recorded by the "Build native libraries"
 # workflow, whose pack-nuget job runs on windows-latest with core.autocrlf=true.
